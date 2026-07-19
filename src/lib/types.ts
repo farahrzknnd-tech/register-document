@@ -29,7 +29,7 @@ export type StatusTindakLanjut = 'Belum Ada Tindak Lanjut' | 'Sudah Dibuat Surat
 
 export interface Gambar {
   id: string;
-  project_id: string;
+  project_id: string | null;
   register_no: string | null;
   judul_gambar: string;
   cluster_id: string | null;
@@ -51,7 +51,7 @@ export type KategoriSurat = 'Surat Keluar' | 'IPP' | 'IPL' | 'Internal Memo';
 
 export interface Surat {
   id: string;
-  project_id: string;
+  project_id: string | null;
   register_no: string | null;
   nomor_surat: string;
   perihal: string;
@@ -100,7 +100,7 @@ export type JenisBeritaAcara = 'Berita Acara Aanwijzing' | 'Berita Acara Klarifi
 
 export interface BeritaAcara {
   id: string;
-  project_id: string;
+  project_id: string | null;
   cluster_id: string | null;
   register_no: string | null;
   jenis_berita_acara: JenisBeritaAcara;
@@ -125,7 +125,7 @@ export const BERITA_ACARA_PREFIXES: Record<JenisBeritaAcara, string> = {
 
 export interface SuratPenunjukan {
   id: string;
-  project_id: string;
+  project_id: string | null;
   cluster_id: string | null;
   register_no: string | null;
   nomor_sp: string;

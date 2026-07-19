@@ -12,9 +12,9 @@
 ## Relasi
 
 - Setiap cluster wajib punya `project_id`.
-- Setiap dokumen wajib punya `project_id`.
-- `cluster_id` dokumen opsional.
-- Composite FK memastikan cluster dokumen berasal dari project sama.
+- `project_id` dokumen opsional, FK ke `projects`.
+- `cluster_id` dokumen opsional, FK langsung ke `clusters`.
+- Project dan cluster dokumen independen; tidak ada validasi kompatibilitas project-cluster pada dokumen.
 
 ## Nomor register
 
@@ -47,7 +47,7 @@ Supabase Auth membuat user. Trigger `auth.users` membuat `app_users` default `vi
 - `create_berita_acara`
 - `set_document_refs`
 
-Create RPC memvalidasi admin, project, cluster, nomor register, insert dokumen, dan simpan referensi dalam satu transaksi.
+Create RPC memvalidasi admin, project/cluster bila diisi, nomor register, insert dokumen, dan simpan referensi dalam satu transaksi.
 
 ## Deferred work
 

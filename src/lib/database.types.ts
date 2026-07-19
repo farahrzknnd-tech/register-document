@@ -45,7 +45,7 @@ export type Database = {
           keterangan: string | null
           link_drive: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal: string
           updated_at: string
@@ -58,7 +58,7 @@ export type Database = {
           keterangan?: string | null
           link_drive?: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal: string
           updated_at?: string
@@ -71,18 +71,18 @@ export type Database = {
           keterangan?: string | null
           link_drive?: string | null
           perihal?: string
-          project_id?: string
+          project_id?: string | null
           register_no?: string
           tanggal?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "berita_acara_project_id_cluster_id_fkey"
-            columns: ["project_id", "cluster_id"]
+            foreignKeyName: "berita_acara_cluster_id_fkey"
+            columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
-            referencedColumns: ["project_id", "id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "berita_acara_project_id_fkey"
@@ -167,7 +167,7 @@ export type Database = {
           judul_gambar: string
           keterangan: string | null
           link_drive: string | null
-          project_id: string
+          project_id: string | null
           register_no: string
           revisi: string | null
           status_gambar: string
@@ -183,7 +183,7 @@ export type Database = {
           judul_gambar: string
           keterangan?: string | null
           link_drive?: string | null
-          project_id: string
+          project_id: string | null
           register_no: string
           revisi?: string | null
           status_gambar?: string
@@ -199,7 +199,7 @@ export type Database = {
           judul_gambar?: string
           keterangan?: string | null
           link_drive?: string | null
-          project_id?: string
+          project_id?: string | null
           register_no?: string
           revisi?: string | null
           status_gambar?: string
@@ -209,11 +209,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "gambar_project_id_cluster_id_fkey"
-            columns: ["project_id", "cluster_id"]
+            foreignKeyName: "gambar_cluster_id_fkey"
+            columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
-            referencedColumns: ["project_id", "id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "gambar_project_id_fkey"
@@ -288,7 +288,7 @@ export type Database = {
           penerima: string | null
           pengirim: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_surat: string
           updated_at: string
@@ -305,7 +305,7 @@ export type Database = {
           penerima?: string | null
           pengirim?: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_surat: string
           updated_at?: string
@@ -322,18 +322,18 @@ export type Database = {
           penerima?: string | null
           pengirim?: string | null
           perihal?: string
-          project_id?: string
+          project_id?: string | null
           register_no?: string
           tanggal_surat?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "surat_project_id_cluster_id_fkey"
-            columns: ["project_id", "cluster_id"]
+            foreignKeyName: "surat_cluster_id_fkey"
+            columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
-            referencedColumns: ["project_id", "id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "surat_project_id_fkey"
@@ -356,7 +356,7 @@ export type Database = {
           lokasi: string | null
           nama_kontraktor: string
           nomor_sp: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_finish: string | null
           tanggal_kickoff: string | null
@@ -375,7 +375,7 @@ export type Database = {
           lokasi?: string | null
           nama_kontraktor: string
           nomor_sp: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_finish?: string | null
           tanggal_kickoff?: string | null
@@ -394,7 +394,7 @@ export type Database = {
           lokasi?: string | null
           nama_kontraktor?: string
           nomor_sp?: string
-          project_id?: string
+          project_id?: string | null
           register_no?: string
           tanggal_finish?: string | null
           tanggal_kickoff?: string | null
@@ -404,11 +404,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "surat_penunjukan_project_id_cluster_id_fkey"
-            columns: ["project_id", "cluster_id"]
+            foreignKeyName: "surat_penunjukan_cluster_id_fkey"
+            columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
-            referencedColumns: ["project_id", "id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "surat_penunjukan_project_id_fkey"
@@ -425,7 +425,7 @@ export type Database = {
     }
     Functions: {
       assert_admin_project_cluster: {
-        Args: { p_cluster: string; p_project: string }
+        Args: { p_cluster: string | null; p_project: string | null }
         Returns: undefined
       }
       assert_register_consistent: {
@@ -439,12 +439,12 @@ export type Database = {
       }
       create_berita_acara: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_jenis_berita_acara: string
           p_keterangan: string
           p_link_drive: string
           p_perihal: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_tanggal: string
         }
@@ -456,7 +456,7 @@ export type Database = {
           keterangan: string | null
           link_drive: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal: string
           updated_at: string
@@ -470,12 +470,12 @@ export type Database = {
       }
       create_gambar: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_jenis_gambar: string
           p_judul_gambar: string
           p_keterangan: string
           p_link_drive: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_revisi: string
           p_status_gambar: string
@@ -489,7 +489,7 @@ export type Database = {
           judul_gambar: string
           keterangan: string | null
           link_drive: string | null
-          project_id: string
+          project_id: string | null
           register_no: string
           revisi: string | null
           status_gambar: string
@@ -506,7 +506,7 @@ export type Database = {
       }
       create_surat: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_jenis_surat: string
           p_kategori_surat: string
           p_keterangan: string
@@ -515,7 +515,7 @@ export type Database = {
           p_penerima: string
           p_pengirim: string
           p_perihal: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_tanggal_surat: string
         }
@@ -531,7 +531,7 @@ export type Database = {
           penerima: string | null
           pengirim: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_surat: string
           updated_at: string
@@ -545,14 +545,14 @@ export type Database = {
       }
       create_surat_penunjukan: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_jenis_pekerjaan: string
           p_keterangan: string
           p_link_risalah: string
           p_lokasi: string
           p_nama_kontraktor: string
           p_nomor_sp: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_tanggal_finish: string
           p_tanggal_kickoff: string
@@ -570,7 +570,7 @@ export type Database = {
           lokasi: string | null
           nama_kontraktor: string
           nomor_sp: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_finish: string | null
           tanggal_kickoff: string | null
@@ -593,7 +593,7 @@ export type Database = {
       }
       document_project_id: {
         Args: { p_id: string; p_type: string }
-        Returns: string
+        Returns: string | null
       }
       next_register_no: {
         Args: { p_subtype: string; p_type: string; p_year: number }
@@ -614,13 +614,13 @@ export type Database = {
       }
       update_berita_acara: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_id: string
           p_jenis_berita_acara: string
           p_keterangan: string
           p_link_drive: string
           p_perihal: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_tanggal: string
         }
@@ -632,7 +632,7 @@ export type Database = {
           keterangan: string | null
           link_drive: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal: string
           updated_at: string
@@ -646,13 +646,13 @@ export type Database = {
       }
       update_gambar: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_id: string
           p_jenis_gambar: string
           p_judul_gambar: string
           p_keterangan: string
           p_link_drive: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_revisi: string
           p_status_gambar: string
@@ -666,7 +666,7 @@ export type Database = {
           judul_gambar: string
           keterangan: string | null
           link_drive: string | null
-          project_id: string
+          project_id: string | null
           register_no: string
           revisi: string | null
           status_gambar: string
@@ -683,7 +683,7 @@ export type Database = {
       }
       update_surat: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_id: string
           p_jenis_surat: string
           p_kategori_surat: string
@@ -693,7 +693,7 @@ export type Database = {
           p_penerima: string
           p_pengirim: string
           p_perihal: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_tanggal_surat: string
         }
@@ -709,7 +709,7 @@ export type Database = {
           penerima: string | null
           pengirim: string | null
           perihal: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_surat: string
           updated_at: string
@@ -723,7 +723,7 @@ export type Database = {
       }
       update_surat_penunjukan: {
         Args: {
-          p_cluster_id: string
+          p_cluster_id: string | null
           p_id: string
           p_jenis_pekerjaan: string
           p_keterangan: string
@@ -731,7 +731,7 @@ export type Database = {
           p_lokasi: string
           p_nama_kontraktor: string
           p_nomor_sp: string
-          p_project_id: string
+          p_project_id: string | null
           p_refs?: Json
           p_tanggal_finish: string
           p_tanggal_kickoff: string
@@ -749,7 +749,7 @@ export type Database = {
           lokasi: string | null
           nama_kontraktor: string
           nomor_sp: string
-          project_id: string
+          project_id: string | null
           register_no: string
           tanggal_finish: string | null
           tanggal_kickoff: string | null

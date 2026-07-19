@@ -19,7 +19,6 @@ import { DetailField, EmptyState, TableActions } from '../components/shared';
 import { DriveButtons, DetailActions } from '../components/DetailActions';
 import { printDetail } from '../lib/export';
 import { formatDate, calcDurasi, buildAllDocSummaries, findDoc, toDocSummary } from '../lib/utils';
-import { clustersForProject, defaultProjectIdForClusters } from '../lib/permissions';
 
 interface SuratPenunjukanPageProps {
   suratPenunjukan: SuratPenunjukan[];
@@ -41,7 +40,7 @@ interface SPFormState extends SuratPenunjukanInput {
 }
 
 const emptyForm: SPFormState = {
-  project_id: '',
+  project_id: null,
   cluster_id: null,
   nomor_sp: '', tanggal_sp: new Date().toISOString().slice(0, 10),
   nama_kontraktor: '', jenis_pekerjaan: '', lokasi: '',
@@ -112,7 +111,7 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
     });
   }, [suratPenunjukan, search, filterTahun, filterKontraktor, filterJenis]);
 
-  const openAdd = () => { setEditing(null); setForm({ ...emptyForm, project_id: defaultProjectIdForClusters(projects, clusters) }); setModalOpen(true); };
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = async (s: SuratPenunjukan) => {
     setEditing(s);
     setForm({
@@ -393,17 +392,17 @@ function SuratPenunjukanForm({ form, setForm, projects, clusters, editing, allDo
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
-        <label className="label">Project *</label>
-        <select className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value, cluster_id: null })}>
-          <option value="">Pilih Project</option>
+        <label className="label">Project</label>
+        <select className="input" value={form.project_id || ''} onChange={(e) => set('project_id', e.target.value || null)}>
+          <option value="">Tanpa Project</option>
           {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select>
       </div>
       <div>
         <label className="label">Cluster</label>
         <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)}>
-          <option value="">{form.project_id ? 'Tanpa Cluster' : 'Pilih Project dulu'}</option>
-          {clustersForProject(clusters, form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
+          <option value="">Tanpa Cluster</option>
+          {clusters.map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
       <div>

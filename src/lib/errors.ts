@@ -8,7 +8,7 @@ export function mapAppError(error: unknown): string {
   if (/Document date year must match/i.test(message)) return 'Tahun tanggal harus sama dengan tahun nomor register.';
   if (/Document subtype cannot change/i.test(message)) return 'Subtipe dokumen tidak boleh berubah dari nomor register.';
   if (/Project not found/i.test(message)) return 'Proyek tidak ditemukan.';
-  if (/Cluster does not belong/i.test(message)) return 'Cluster tidak sesuai proyek.';
+  if (/Cluster not found/i.test(message)) return 'Cluster tidak ditemukan.';
   if (/Unsupported document|Unsupported register/i.test(message)) return 'Jenis dokumen tidak didukung.';
   if (/Referenced document not found|P0002/i.test(message)) return 'Dokumen referensi tidak ditemukan.';
   if (/Cross-project/i.test(message)) return 'Referensi beda proyek ditolak.';

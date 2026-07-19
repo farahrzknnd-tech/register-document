@@ -220,7 +220,7 @@ function ClusterTable({ clusters, projects, onRefresh }: { clusters: Cluster[]; 
               <option value="">Pilih Project</option>
               {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
             </select>
-            <p className="mt-1 text-xs text-gray-500">Cluster akan tersedia hanya untuk dokumen pada project ini.</p>
+            <p className="mt-1 text-xs text-gray-500">Project hanya untuk pengelompokan Master Cluster.</p>
           </div>
           <div>
             <label className="label">Nama Cluster *</label>

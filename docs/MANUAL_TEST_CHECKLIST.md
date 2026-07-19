@@ -7,7 +7,7 @@
 - Admin CRUD: buat, edit, hapus project, cluster, dan semua jenis dokumen.
 - Viewer read-only: viewer bisa lihat, cari, filter, print, export.
 - Anonymous API: tanpa token, query tabel aplikasi ditolak.
-- Validasi project/cluster: cluster beda project ditolak database.
+- Project/cluster dokumen: keduanya opsional, independen, dan cluster beda project master tetap diterima.
 - Nomor register: create dokumen menghasilkan format prefix benar dan sequence naik per tahun/subtype.
 - Durasi sama tanggal: `tanggal_start=tanggal_finish` menghasilkan `durasi=1`.
 - Finish invalid: `tanggal_finish < tanggal_start` ditolak.

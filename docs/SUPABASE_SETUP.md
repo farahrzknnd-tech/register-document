@@ -79,7 +79,7 @@ Buka URL Vite, login dengan user Supabase Auth.
 - `Invalid login credentials`: email/password salah atau user belum dibuat.
 - `Akun tidak aktif`: `app_users.active=false`.
 - `Akses admin diperlukan`: user masih `viewer`.
-- `Cluster tidak sesuai proyek`: cluster dipilih dari project lain.
+- `Cluster tidak ditemukan`: cluster dokumen mengarah ke master cluster yang tidak ada.
 - Hapus project/cluster gagal: masih ada data dependensi.
 
 ## 10. Peringatan service-role

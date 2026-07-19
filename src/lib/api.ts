@@ -60,7 +60,7 @@ export async function deleteCluster(id: string): Promise<void> {
 
 // ---- Gambar ----
 export interface GambarInput {
-  project_id: string;
+  project_id: string | null;
   cluster_id: string | null;
   judul_gambar: string;
   jenis_gambar: JenisGambar;
@@ -112,7 +112,7 @@ export async function deleteGambar(id: string): Promise<void> {
 
 // ---- Surat ----
 export interface SuratInput {
-  project_id: string;
+  project_id: string | null;
   cluster_id: string | null;
   nomor_surat: string;
   perihal: string;
@@ -161,7 +161,7 @@ export async function deleteSurat(id: string): Promise<void> {
 
 // ---- Surat Penunjukan ----
 export interface SuratPenunjukanInput {
-  project_id: string;
+  project_id: string | null;
   cluster_id: string | null;
   nomor_sp: string;
   tanggal_sp: string;
@@ -228,7 +228,7 @@ export async function fetchBeritaAcara(): Promise<BeritaAcara[]> {
 }
 
 export interface BeritaAcaraInput {
-  project_id: string;
+  project_id: string | null;
   cluster_id: string | null;
   jenis_berita_acara: JenisBeritaAcara;
   tanggal: string;
