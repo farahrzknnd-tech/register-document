@@ -20,6 +20,7 @@ import { DetailField, EmptyState, TableActions } from '../components/shared';
 import { DriveButtons, DetailActions } from '../components/DetailActions';
 import { printDetail } from '../lib/export';
 import { formatDate, buildAllDocSummaries, findDoc, toDocSummary } from '../lib/utils';
+import { clustersForProject } from '../lib/permissions';
 
 interface SuratPageProps {
   surat: Surat[];
@@ -318,7 +319,7 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
                   <th className="px-4 py-3">Penerima</th>
                   <th className="px-4 py-3">Tgl Surat</th>
                   <th className="px-4 py-3">Link</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -408,7 +409,7 @@ function SuratForm({ form, setForm, projects, clusters, editing, allDocs, exclud
         <label className="label">Cluster</label>
         <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
           <option value="">Tanpa Cluster</option>
-          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
+          {clustersForProject(clusters, form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
       <div>

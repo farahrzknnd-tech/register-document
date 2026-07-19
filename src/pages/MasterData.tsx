@@ -46,7 +46,6 @@ function ProjectTable({ projects, onRefresh }: { projects: Project[]; onRefresh:
   const [code, setCode] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
   const openAdd = () => { setEditing(null); setName(''); setCode(''); setModalOpen(true); };
   const openEdit = (p: Project) => { setEditing(p); setName(p.name); setCode(p.code || ''); setModalOpen(true); };
 
@@ -89,7 +88,7 @@ function ProjectTable({ projects, onRefresh }: { projects: Project[]; onRefresh:
                 <th className="px-5 py-3">Nama Project</th>
                 <th className="px-5 py-3">Kode</th>
                 <th className="px-5 py-3">Dibuat</th>
-                <th className="px-5 py-3 text-right">Action</th>
+                <th className="px-5 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -99,7 +98,7 @@ function ProjectTable({ projects, onRefresh }: { projects: Project[]; onRefresh:
                   <td className="px-5 py-3 text-gray-600">{p.code || '-'}</td>
                   <td className="px-5 py-3 text-gray-500">{formatDate(p.created_at)}</td>
                   <td className="px-5 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-start gap-1">
                       <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600"><Pencil className="h-4 w-4" /></button>
                       <button onClick={() => setDeleteId(p.id)} className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                     </div>
@@ -141,6 +140,7 @@ function ClusterTable({ clusters, projects, onRefresh }: { clusters: Cluster[]; 
   const [projectId, setProjectId] = useState(projects[0]?.id ?? '');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const projectNameById = new Map(projects.map((project) => [project.id, project.name]));
 
   const openAdd = () => { setEditing(null); setName(''); setCode(''); setProjectId(projects[0]?.id ?? ''); setModalOpen(true); };
   const openEdit = (c: Cluster) => { setEditing(c); setName(c.name); setCode(c.code || ''); setProjectId(c.project_id); setModalOpen(true); };
@@ -182,20 +182,22 @@ function ClusterTable({ clusters, projects, onRefresh }: { clusters: Cluster[]; 
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <th className="px-5 py-3">Project</th>
                 <th className="px-5 py-3">Nama Cluster</th>
                 <th className="px-5 py-3">Kode</th>
                 <th className="px-5 py-3">Dibuat</th>
-                <th className="px-5 py-3 text-right">Action</th>
+                <th className="px-5 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {clusters.map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50/50">
+                  <td className="px-5 py-3 text-gray-600">{projectNameById.get(c.project_id) ?? 'Project tidak ditemukan'}</td>
                   <td className="px-5 py-3 font-medium text-gray-900">{c.name}</td>
                   <td className="px-5 py-3 text-gray-600">{c.code || '-'}</td>
                   <td className="px-5 py-3 text-gray-500">{formatDate(c.created_at)}</td>
                   <td className="px-5 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-start gap-1">
                       <button onClick={() => openEdit(c)} className="rounded-lg p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600"><Pencil className="h-4 w-4" /></button>
                       <button onClick={() => setDeleteId(c.id)} className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                     </div>
@@ -212,6 +214,14 @@ function ClusterTable({ clusters, projects, onRefresh }: { clusters: Cluster[]; 
           <button className="btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
         </>}>
         <div className="space-y-4">
+          <div>
+            <label className="label">Project *</label>
+            <select className="input" value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+              <option value="">Pilih Project</option>
+              {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">Cluster akan tersedia hanya untuk dokumen pada project ini.</p>
+          </div>
           <div>
             <label className="label">Nama Cluster *</label>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="cth: Cluster East" />

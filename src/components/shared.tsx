@@ -24,7 +24,7 @@ export function TableActions({ onPreview, onEdit, onDelete }: {
   onDelete?: () => void;
 }) {
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-start gap-1">
       {onPreview && (
         <button onClick={onPreview} className="rounded-lg p-1.5 text-gray-400 hover:bg-brand-50 hover:text-brand-600" title="Preview">
           <Eye className="h-4 w-4" />

@@ -19,6 +19,7 @@ import { DetailField, EmptyState, TableActions } from '../components/shared';
 import { DriveButtons, DetailActions } from '../components/DetailActions';
 import { printDetail } from '../lib/export';
 import { formatDate, calcDurasi, buildAllDocSummaries, findDoc, toDocSummary } from '../lib/utils';
+import { clustersForProject } from '../lib/permissions';
 
 interface SuratPenunjukanPageProps {
   suratPenunjukan: SuratPenunjukan[];
@@ -318,7 +319,7 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
                   <th className="px-4 py-3">Durasi</th>
                   <th className="px-4 py-3">Tgl Kick Off</th>
                   <th className="px-4 py-3">Link Risalah</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -402,7 +403,7 @@ function SuratPenunjukanForm({ form, setForm, projects, clusters, editing, allDo
         <label className="label">Cluster</label>
         <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
           <option value="">Tanpa Cluster</option>
-          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
+          {clustersForProject(clusters, form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
       <div>

@@ -20,6 +20,7 @@ import { DetailField, EmptyState, TableActions } from '../components/shared';
 import { DriveButtons, DetailActions } from '../components/DetailActions';
 import { printDetail } from '../lib/export';
 import { formatDate, buildAllDocSummaries, findDoc, toDocSummary } from '../lib/utils';
+import { clustersForProject } from '../lib/permissions';
 
 interface BeritaAcaraPageProps {
   beritaAcara: BeritaAcara[];
@@ -297,7 +298,7 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
                   <th className="px-4 py-3">Perihal</th>
                   <th className="px-4 py-3">Tanggal</th>
                   <th className="px-4 py-3">Link Google Drive</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -375,7 +376,7 @@ function BeritaAcaraForm({ form, setForm, projects, clusters, editing, allDocs, 
         <label className="label">Cluster</label>
         <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
           <option value="">Tanpa Cluster</option>
-          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
+          {clustersForProject(clusters, form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
       <div>

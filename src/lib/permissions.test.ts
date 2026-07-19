@@ -18,7 +18,7 @@ describe('frontend permission helpers', () => {
     expect(clustersForProject([
       { id: 'c1', project_id: 'p1', name: 'A', code: null, created_at: '' },
       { id: 'c2', project_id: 'p2', name: 'B', code: null, created_at: '' },
-    ], 'p1').map((cluster) => cluster.id)).toEqual(['c1']);
+    ], 'p1 ').map((cluster) => cluster.id)).toEqual(['c1']);
   });
 
   it('maps refs and register date year', () => {

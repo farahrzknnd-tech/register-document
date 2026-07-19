@@ -195,19 +195,19 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
             <thead>
               <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-600">
                 <th className="border-b border-gray-200 px-4 py-2.5">Jenis Gambar</th>
-                <th className="border-b border-gray-200 px-4 py-2.5 text-right">Jumlah</th>
+                <th className="border-b border-gray-200 px-4 py-2.5">Jumlah</th>
               </tr>
             </thead>
             <tbody>
               {recap.gambarByJenis.map((d) => (
                 <tr key={d.jenis} className="border-b border-gray-100">
                   <td className="px-4 py-2.5 text-gray-700">{d.jenis}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{d.count}</td>
+                  <td className="px-4 py-2.5 font-semibold text-gray-900">{d.count}</td>
                 </tr>
               ))}
               <tr className="bg-gray-50 font-bold">
                 <td className="px-4 py-2.5 text-gray-900">Total</td>
-                <td className="px-4 py-2.5 text-right text-gray-900">{recap.totalGambar}</td>
+                <td className="px-4 py-2.5 text-gray-900">{recap.totalGambar}</td>
               </tr>
             </tbody>
           </table>
@@ -219,19 +219,19 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
             <thead>
               <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-600">
                 <th className="border-b border-gray-200 px-4 py-2.5">Jenis Surat</th>
-                <th className="border-b border-gray-200 px-4 py-2.5 text-right">Jumlah</th>
+                <th className="border-b border-gray-200 px-4 py-2.5">Jumlah</th>
               </tr>
             </thead>
             <tbody>
               {recap.suratByJenis.map((d) => (
                 <tr key={d.jenis} className="border-b border-gray-100">
                   <td className="px-4 py-2.5 text-gray-700">{d.jenis}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{d.count}</td>
+                  <td className="px-4 py-2.5 font-semibold text-gray-900">{d.count}</td>
                 </tr>
               ))}
               <tr className="bg-gray-50 font-bold">
                 <td className="px-4 py-2.5 text-gray-900">Total</td>
-                <td className="px-4 py-2.5 text-right text-gray-900">{recap.totalSurat}</td>
+                <td className="px-4 py-2.5 text-gray-900">{recap.totalSurat}</td>
               </tr>
             </tbody>
           </table>

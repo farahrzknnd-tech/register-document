@@ -652,7 +652,7 @@ export function Dashboard({
                       <th className="px-4 py-3 cursor-pointer select-none hover:text-gray-700" onClick={() => handleSort('status')}>
                         <span className="inline-flex items-center gap-1">Status <ArrowUpDown className="h-3 w-3" /></span>
                       </th>
-                      <th className="px-4 py-3 text-right">Aksi</th>
+                      <th className="px-4 py-3">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -675,7 +675,7 @@ export function Dashboard({
                           <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatDate(d.summary.date)}</td>
                           <td className="px-4 py-3 text-gray-600">{d.status}</td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-start gap-1" onClick={(e) => e.stopPropagation()}>
                               <button onClick={() => onOpenDoc(d.summary.type, d.summary.id)}
                                 className="rounded-lg p-1.5 text-gray-400 hover:bg-brand-50 hover:text-brand-600" title="Detail">
                                 <Eye className="h-4 w-4" />
