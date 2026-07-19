@@ -407,8 +407,8 @@ function SuratForm({ form, setForm, projects, clusters, editing, allDocs, exclud
       </div>
       <div>
         <label className="label">Cluster</label>
-        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
-          <option value="">Tanpa Cluster</option>
+        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)}>
+          <option value="">{form.project_id ? 'Tanpa Cluster' : 'Pilih Project dulu'}</option>
           {clustersForProject(clusters, form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
