@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { UserRole } from '../lib/types';
 import { ROLE_LABELS } from '../lib/types';
+import { Footer } from './Footer';
 
 export type PageId = 'dashboard' | 'gambar' | 'surat' | 'beritaAcara' | 'suratPenunjukan' | 'master' | 'laporan';
 
@@ -107,7 +108,7 @@ export function Layout({ current, onNavigate, role, email, onLogout, children }:
         </div>
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="flex min-h-screen flex-col lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-md lg:hidden no-print">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -139,7 +140,8 @@ export function Layout({ current, onNavigate, role, email, onLogout, children }:
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <Footer />
       </div>
 
       {sidebarOpen && (
