@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import type { Gambar, Surat, BeritaAcara, SuratPenunjukan, Cluster, DocType, DocumentSummary, UserRole } from '../lib/types';
 import {
-  JENIS_GAMBAR_LIST, JENIS_SURAT_LIST, JENIS_BERITA_ACARA_LIST,
+  JENIS_SURAT_LIST, JENIS_BERITA_ACARA_LIST,
   DOC_TYPE_LABELS,
 } from '../lib/types';
 import { FilterBar, type FilterOption, Badge } from '../components/FilterBar';
@@ -101,14 +101,14 @@ export function Dashboard({
     }));
     beritaAcara.forEach((b) => flat.push({
       summary: toDocSummary('berita_acara', b),
-      clusterName: 'Tanpa Cluster',
+      clusterName: b.cluster?.name || 'Tanpa Cluster',
       status: b.jenis_berita_acara,
       link: b.link_drive,
       createdAt: b.created_at,
     }));
     suratPenunjukan.forEach((sp) => flat.push({
       summary: toDocSummary('surat_penunjukan', sp),
-      clusterName: 'Tanpa Cluster',
+      clusterName: sp.cluster?.name || 'Tanpa Cluster',
       status: 'SP',
       link: sp.link_risalah,
       createdAt: sp.created_at,
@@ -153,9 +153,11 @@ export function Dashboard({
       } else if (explorerSel.kind === 'type' && explorerSel.type) {
         docs = docs.filter((d) => d.summary.type === explorerSel.type);
       } else if (explorerSel.kind === 'subtype' && explorerSel.subtype) {
-        // subtype must be scoped to the selected cluster if one is expanded
         docs = docs.filter((d) => {
-          if (d.summary.subtitle !== explorerSel.subtype) return false;
+          if (explorerSel.type && d.summary.type !== explorerSel.type) return false;
+          const subtypeMatches =
+            d.summary.subtitle === explorerSel.subtype || d.status === explorerSel.subtype;
+          if (!subtypeMatches) return false;
           if (explorerSel.clusterName) return d.clusterName === explorerSel.clusterName;
           return true;
         });
@@ -234,8 +236,10 @@ export function Dashboard({
   }, [allDocs]);
 
   const explorerTree = useMemo(() => {
-    const clusterNames = Array.from(new Set(clusters.map((c) => c.name)));
-    if (clusterNames.length === 0) clusterNames.push('Tanpa Cluster');
+    const clusterNames = Array.from(new Set([
+      ...clusters.map((c) => c.name),
+      ...allDocs.map((d) => d.clusterName),
+    ]));
     return clusterNames.map((cn) => {
       const clusterDocs = allDocs.filter((d) => d.clusterName === cn);
       const byType: Record<DocType, FlatDoc[]> = {
@@ -475,91 +479,143 @@ export function Dashboard({
                   </button>
                   {isExpanded && (
                     <div className="ml-4 border-l border-gray-100 pl-2">
-                      {(['gambar', 'surat', 'berita_acara', 'surat_penunjukan'] as DocType[]).map((dt) => {
-                        const docs = cl.byType[dt];
+                      {JENIS_BERITA_ACARA_LIST.map((jenis) => {
+                        const docs = cl.byType.berita_acara.filter((d) => d.summary.subtitle === jenis);
                         if (docs.length === 0) return null;
-                        const dtKey = `${clusterKey}-${dt}`;
-                        const dtExpanded = explorerExpanded.has(dtKey);
-                        const dtSelected = explorerSel?.kind === 'type' && explorerSel.type === dt && explorerSel.clusterName === cl.name;
-                        const Icon = docTypeIcons[dt];
+                        const selected = explorerSel?.kind === 'subtype'
+                          && explorerSel.type === 'berita_acara'
+                          && explorerSel.subtype === jenis
+                          && explorerSel.clusterName === cl.name;
                         return (
-                          <div key={dt}>
-                            <button
-                              onClick={() => toggleExpand(dtKey)}
-                              onDoubleClick={() => selectExplorer({ kind: 'type', clusterName: cl.name, type: dt })}
-                              className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                                dtSelected ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
-                              }`}
-                            >
-                              {dtExpanded ? <ChevronDown className="h-3.5 w-3.5 text-gray-400" /> : <ChevronRight className="h-3.5 w-3.5 text-gray-400" />}
-                              <Icon className="h-3.5 w-3.5" />
-                              <span className="truncate">{DOC_TYPE_LABELS[dt]}</span>
-                              <span className="ml-auto text-xs text-gray-400">{docs.length}</span>
-                            </button>
-                            {dtExpanded && dt === 'gambar' && (
-                              <div className="ml-5 border-l border-gray-100 pl-2">
-                                {JENIS_GAMBAR_LIST.map((jg) => {
-                                  const subDocs = docs.filter((d) => d.summary.subtitle === jg);
-                                  if (subDocs.length === 0) return null;
-                                  const subSel = explorerSel?.kind === 'subtype' && explorerSel.subtype === jg && explorerSel.clusterName === cl.name;
-                                  return (
-                                    <button key={jg}
-                                      onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, subtype: jg })}
-                                      className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1 text-xs transition-colors ${
-                                        subSel ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'
-                                      }`}
-                                    >
-                                      <FileText className="h-3 w-3 text-gray-400" />
-                                      <span className="truncate">{jg}</span>
-                                      <span className="ml-auto text-xs text-gray-400">{subDocs.length}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            {dtExpanded && dt === 'surat' && (
-                              <div className="ml-5 border-l border-gray-100 pl-2">
-                                {JENIS_SURAT_LIST.map((js) => {
-                                  const subDocs = docs.filter((d) => d.summary.subtitle === js || d.status === js);
-                                  if (subDocs.length === 0) return null;
-                                  const subSel = explorerSel?.kind === 'subtype' && explorerSel.subtype === js && explorerSel.clusterName === cl.name;
-                                  return (
-                                    <button key={js}
-                                      onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, subtype: js })}
-                                      className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1 text-xs transition-colors ${
-                                        subSel ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'
-                                      }`}
-                                    >
-                                      <FileText className="h-3 w-3 text-gray-400" />
-                                      <span className="truncate">{js}</span>
-                                      <span className="ml-auto text-xs text-gray-400">{subDocs.length}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            {dtExpanded && dt === 'berita_acara' && (
-                              <div className="ml-5 border-l border-gray-100 pl-2">
-                                {JENIS_BERITA_ACARA_LIST.map((jb) => {
-                                  const subDocs = docs.filter((d) => d.summary.subtitle === jb);
-                                  if (subDocs.length === 0) return null;
-                                  const subSel = explorerSel?.kind === 'subtype' && explorerSel.subtype === jb && explorerSel.clusterName === cl.name;
-                                  return (
-                                    <button key={jb}
-                                      onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, subtype: jb })}
-                                      className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1 text-xs transition-colors ${
-                                        subSel ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'
-                                      }`}
-                                    >
-                                      <FileText className="h-3 w-3 text-gray-400" />
-                                      <span className="truncate">{jb}</span>
-                                      <span className="ml-auto text-xs text-gray-400">{subDocs.length}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                          <button
+                            key={jenis}
+                            onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, type: 'berita_acara', subtype: jenis })}
+                            className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                              selected ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <FileCheck className="h-3.5 w-3.5 text-purple-500" />
+                            <span className="truncate">{jenis}</span>
+                            <span className="ml-auto text-xs text-gray-400">{docs.length}</span>
+                          </button>
+                        );
+                      })}
+
+                      {cl.byType.surat_penunjukan.length > 0 && (
+                        <button
+                          onClick={() => selectExplorer({ kind: 'type', clusterName: cl.name, type: 'surat_penunjukan' })}
+                          className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                            explorerSel?.kind === 'type'
+                              && explorerSel.type === 'surat_penunjukan'
+                              && explorerSel.clusterName === cl.name
+                              ? 'bg-brand-50 text-brand-700'
+                              : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <FileSignature className="h-3.5 w-3.5 text-amber-500" />
+                          <span className="truncate">Surat Penunjukan</span>
+                          <span className="ml-auto text-xs text-gray-400">{cl.byType.surat_penunjukan.length}</span>
+                        </button>
+                      )}
+
+                      {JENIS_SURAT_LIST.map((jenis) => {
+                        const docs = cl.byType.surat.filter((d) => d.status === jenis);
+                        if (docs.length === 0) return null;
+                        const selected = explorerSel?.kind === 'subtype'
+                          && explorerSel.type === 'surat'
+                          && explorerSel.subtype === jenis
+                          && explorerSel.clusterName === cl.name;
+                        return (
+                          <button
+                            key={jenis}
+                            onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, type: 'surat', subtype: jenis })}
+                            className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                              selected ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <Mail className="h-3.5 w-3.5 text-cyan-500" />
+                            <span className="truncate">{jenis}</span>
+                            <span className="ml-auto text-xs text-gray-400">{docs.length}</span>
+                          </button>
+                        );
+                      })}
+
+                      {[
+                        { parent: 'Gambar Tender', child: 'Gambar Revisi Tender' },
+                        { parent: 'Gambar Pelaksanaan', child: 'Gambar Revisi Pelaksanaan' },
+                      ].map(({ parent, child }) => {
+                        const parentDocs = cl.byType.gambar.filter((d) => d.summary.subtitle === parent);
+                        const childDocs = cl.byType.gambar.filter((d) => d.summary.subtitle === child);
+                        if (parentDocs.length === 0 && childDocs.length === 0) return null;
+                        const groupKey = `${clusterKey}-${parent}`;
+                        const groupExpanded = explorerExpanded.has(groupKey);
+                        const parentSelected = explorerSel?.kind === 'subtype'
+                          && explorerSel.type === 'gambar'
+                          && explorerSel.subtype === parent
+                          && explorerSel.clusterName === cl.name;
+                        const childSelected = explorerSel?.kind === 'subtype'
+                          && explorerSel.type === 'gambar'
+                          && explorerSel.subtype === child
+                          && explorerSel.clusterName === cl.name;
+                        return (
+                          <div key={parent}>
+                            <div className="flex items-center">
+                              {childDocs.length > 0 ? (
+                                <button
+                                  type="button"
+                                  aria-label={`${groupExpanded ? 'Tutup' : 'Buka'} ${parent}`}
+                                  onClick={() => toggleExpand(groupKey)}
+                                  className="rounded p-1 text-gray-400 hover:bg-gray-100"
+                                >
+                                  {groupExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                                </button>
+                              ) : <span className="w-5" />}
+                              <button
+                                onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, type: 'gambar', subtype: parent })}
+                                className={`flex min-w-0 flex-1 items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm transition-colors ${
+                                  parentSelected ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                              >
+                                <FileImage className="h-3.5 w-3.5 text-brand-500" />
+                                <span className="truncate">{parent}</span>
+                                <span className="ml-auto text-xs text-gray-400">{parentDocs.length}</span>
+                              </button>
+                            </div>
+                            {groupExpanded && childDocs.length > 0 && (
+                              <button
+                                onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, type: 'gambar', subtype: child })}
+                                className={`ml-7 flex w-[calc(100%-1.75rem)] items-center gap-1.5 rounded-lg px-3 py-1 text-xs transition-colors ${
+                                  childSelected ? 'bg-brand-50 text-brand-700' : 'text-gray-500 hover:bg-gray-50'
+                                }`}
+                              >
+                                <FileText className="h-3 w-3 text-gray-400" />
+                                <span className="truncate">{child}</span>
+                                <span className="ml-auto text-xs text-gray-400">{childDocs.length}</span>
+                              </button>
                             )}
                           </div>
+                        );
+                      })}
+
+                      {(['Gambar Informasi', 'As Built Drawing'] as const).map((jenis) => {
+                        const docs = cl.byType.gambar.filter((d) => d.summary.subtitle === jenis);
+                        if (docs.length === 0) return null;
+                        const selected = explorerSel?.kind === 'subtype'
+                          && explorerSel.type === 'gambar'
+                          && explorerSel.subtype === jenis
+                          && explorerSel.clusterName === cl.name;
+                        return (
+                          <button
+                            key={jenis}
+                            onClick={() => selectExplorer({ kind: 'subtype', clusterName: cl.name, type: 'gambar', subtype: jenis })}
+                            className={`flex w-full items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                              selected ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <FileImage className="h-3.5 w-3.5 text-brand-500" />
+                            <span className="truncate">{jenis}</span>
+                            <span className="ml-auto text-xs text-gray-400">{docs.length}</span>
+                          </button>
                         );
                       })}
                     </div>
