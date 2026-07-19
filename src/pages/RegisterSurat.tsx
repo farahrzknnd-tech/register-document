@@ -306,7 +306,7 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
           <EmptyState icon={Mail} message="Belum ada data surat" />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   <th className="px-4 py-3">Register No</th>
@@ -332,7 +332,7 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
                     </td>
                     <td className="px-4 py-3">
                       <button onClick={() => openDetail(s)}
-                        className="font-medium text-gray-900 hover:text-brand-600 hover:underline">
+                        className="block w-full text-left font-medium text-gray-900 hover:text-brand-600 hover:underline">
                         {s.nomor_surat}
                       </button>
                     </td>
