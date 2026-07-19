@@ -1147,6 +1147,33 @@ export type Database = {
         Returns: string
       }
       register_year: { Args: { p_register_no: string }; Returns: number }
+      save_billing_termin_template: {
+        Args: {
+          p_active?: boolean
+          p_code?: string
+          p_description?: string
+          p_items?: Json
+          p_name?: string
+          p_template_id?: string
+        }
+        Returns: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "billing_termin_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_document_refs: {
         Args: { p_refs?: Json; p_source_id: string; p_source_type: string }
         Returns: undefined

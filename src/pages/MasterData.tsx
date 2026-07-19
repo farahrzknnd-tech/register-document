@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Building2, Layers, FolderTree } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, Layers, FolderTree, Activity, ListChecks, Receipt } from 'lucide-react';
 import type { Project, Cluster } from '../lib/types';
 import {
   createProject, updateProject, deleteProject,
@@ -9,6 +9,10 @@ import { useToast } from '../components/Toast';
 import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Loading } from '../components/Loading';
+import { ContractorsTab } from '../features/billing/components/master-data/ContractorsTab';
+import { BillingStatusesTab } from '../features/billing/components/master-data/BillingStatusesTab';
+import { BillingStagesTab } from '../features/billing/components/master-data/BillingStagesTab';
+import { BillingTerminTemplatesTab } from '../features/billing/components/master-data/BillingTerminTemplatesTab';
 
 interface MasterDataProps {
   projects: Project[];
@@ -17,23 +21,48 @@ interface MasterDataProps {
   onRefresh: () => void;
 }
 
+type MasterDataTab = 'project' | 'cluster' | 'contractor' | 'billingStatus' | 'billingStage' | 'terminTemplate';
+
+const masterTabs: { id: MasterDataTab; label: string; icon: typeof Building2 }[] = [
+  { id: 'project', label: 'Master Project', icon: Building2 },
+  { id: 'cluster', label: 'Master Cluster', icon: Layers },
+  { id: 'contractor', label: 'Kontraktor', icon: FolderTree },
+  { id: 'billingStatus', label: 'Status Billing', icon: Activity },
+  { id: 'billingStage', label: 'Tahapan Approval', icon: ListChecks },
+  { id: 'terminTemplate', label: 'Template Termin', icon: Receipt },
+];
+
 export function MasterData({ projects, clusters, loading, onRefresh }: MasterDataProps) {
-  const [tab, setTab] = useState<'project' | 'cluster'>('project');
+  const [tab, setTab] = useState<MasterDataTab>('project');
   if (loading) return <Loading label="Memuat master data..." />;
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-card">
-        <button onClick={() => setTab('project')}
-          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${tab === 'project' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-          <Building2 className="h-4 w-4" /> Master Project
-        </button>
-        <button onClick={() => setTab('cluster')}
-          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${tab === 'cluster' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-          <Layers className="h-4 w-4" /> Master Cluster
-        </button>
+      <div className="rounded-lg border border-gray-200 bg-white p-1 shadow-card">
+        <div className="flex flex-wrap gap-1">
+          {masterTabs.map((item) => {
+            const Icon = item.icon;
+            const active = tab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setTab(item.id)}
+                className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors ${active ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+              >
+                <Icon className="h-4 w-4" /> {item.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      {tab === 'project' ? <ProjectTable projects={projects} onRefresh={onRefresh} /> : <ClusterTable clusters={clusters} projects={projects} onRefresh={onRefresh} />}
+
+      {tab === 'project' && <ProjectTable projects={projects} onRefresh={onRefresh} />}
+      {tab === 'cluster' && <ClusterTable clusters={clusters} projects={projects} onRefresh={onRefresh} />}
+      {tab === 'contractor' && <ContractorsTab />}
+      {tab === 'billingStatus' && <BillingStatusesTab />}
+      {tab === 'billingStage' && <BillingStagesTab />}
+      {tab === 'terminTemplate' && <BillingTerminTemplatesTab />}
     </div>
   );
 }

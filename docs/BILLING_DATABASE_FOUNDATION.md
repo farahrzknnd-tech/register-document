@@ -107,3 +107,7 @@ Perintah terakhir berdampak pada project remote dan dijalankan manual setelah re
 - UI timeline dan termin.
 - Dashboard dan laporan billing.
 - Import data lama dari `monitoring-billing`.
+
+## Patch 2 — Billing Master Data
+
+UI pengelolaan kontraktor, status, tahapan approval, dan template termin sudah ditambahkan ke Master Data host application. Detail implementasi dan pengujian terdapat pada `docs/BILLING_MASTER_DATA.md`.
