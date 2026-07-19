@@ -3,6 +3,10 @@ export function mapAppError(error: unknown): string {
   if (/JWT|auth|Authentication required/i.test(message)) return 'Login diperlukan.';
   if (/inactive|Account inactive/i.test(message)) return 'Akun tidak aktif.';
   if (/Admin permission|required|permission denied|42501/i.test(message)) return 'Akses admin diperlukan.';
+  if (/system managed/i.test(message)) return 'Field sistem tidak boleh diubah manual.';
+  if (/Register number is immutable/i.test(message)) return 'Nomor register tidak boleh diubah.';
+  if (/Document date year must match/i.test(message)) return 'Tahun tanggal harus sama dengan tahun nomor register.';
+  if (/Document subtype cannot change/i.test(message)) return 'Subtipe dokumen tidak boleh berubah dari nomor register.';
   if (/Project not found/i.test(message)) return 'Proyek tidak ditemukan.';
   if (/Cluster does not belong/i.test(message)) return 'Cluster tidak sesuai proyek.';
   if (/Unsupported document|Unsupported register/i.test(message)) return 'Jenis dokumen tidak didukung.';

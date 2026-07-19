@@ -127,7 +127,7 @@ function ProjectTable({ projects, onRefresh }: { projects: Project[]; onRefresh:
         </div>
       </Modal>
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete}
-        title="Hapus Project" message="Apakah Anda yakin ingin menghapus project ini? Dokumen yang terkait akan kehilangan referensi project." />
+        title="Hapus Project" message="Apakah Anda yakin ingin menghapus project ini? Hapus ditolak jika project masih memiliki cluster atau dokumen." />
     </div>
   );
 }
@@ -223,7 +223,7 @@ function ClusterTable({ clusters, projects, onRefresh }: { clusters: Cluster[]; 
         </div>
       </Modal>
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete}
-        title="Hapus Cluster" message="Apakah Anda yakin ingin menghapus cluster ini? Dokumen yang terkait akan kehilangan referensi cluster." />
+        title="Hapus Cluster" message="Apakah Anda yakin ingin menghapus cluster ini? Hapus ditolak jika cluster masih dipakai dokumen." />
     </div>
   );
 }

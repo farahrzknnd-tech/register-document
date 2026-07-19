@@ -52,3 +52,10 @@ Create RPC memvalidasi admin, project, cluster, nomor register, insert dokumen, 
 ## Deferred work
 
 Belum termasuk unified documents table, soft delete, audit history, import Excel massal, storage upload, organisasi multi-tenant, dan UI audit admin.
+
+## Remediasi 1.1
+
+- Baseline membuat `app_users` untuk Auth user lama melalui backfill `auth.users`.
+- Update dokumen memakai RPC atomik `update_*` dan mengganti referensi dalam transaksi yang sama.
+- `register_no`, `created_at`, `updated_at`, dan `status_tindak_lanjut` dilindungi sebagai field sistem.
+- Subtipe dan tahun tanggal harus tetap cocok dengan prefix/tahun pada `register_no`.

@@ -4,7 +4,7 @@ import type { BeritaAcara, Gambar, Surat, SuratPenunjukan, JenisBeritaAcara, Doc
 import { JENIS_BERITA_ACARA_LIST, BERITA_ACARA_PREFIXES } from '../lib/types';
 import {
   createBeritaAcara, updateBeritaAcara, deleteBeritaAcara,
-  fetchDocRefs, fetchDocReferrers, setDocRefs,
+  fetchDocRefs, fetchDocReferrers,
   type BeritaAcaraInput, type DocRefInput,
 } from '../lib/api';
 import { useToast } from '../components/Toast';
@@ -154,12 +154,10 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
     try {
       const { _refs, ...baData } = form;
       if (editing) {
-        await updateBeritaAcara(editing.id, baData);
-        await setDocRefs('berita_acara', editing.id, _refs);
+        await updateBeritaAcara(editing.id, baData, _refs);
         toast.show('Berita Acara berhasil diperbarui', 'success');
       } else {
-        const created = await createBeritaAcara(baData);
-        await setDocRefs('berita_acara', created.id, _refs);
+        await createBeritaAcara(baData, _refs);
         toast.show('Berita Acara berhasil ditambahkan', 'success');
       }
       setModalOpen(false);

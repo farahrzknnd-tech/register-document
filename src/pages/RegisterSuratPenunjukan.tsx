@@ -3,7 +3,7 @@ import { Plus, FileSignature, ArrowLeft, ArrowLeftCircle, ArrowRightCircle } fro
 import type { SuratPenunjukan, Gambar, Surat, BeritaAcara, DocType, DocumentSummary, UserRole, Project, Cluster } from '../lib/types';
 import {
   createSuratPenunjukan, updateSuratPenunjukan, deleteSuratPenunjukan,
-  fetchDocRefs, fetchDocReferrers, setDocRefs,
+  fetchDocRefs, fetchDocReferrers,
   type SuratPenunjukanInput, type DocRefInput,
 } from '../lib/api';
 import { useToast } from '../components/Toast';
@@ -159,12 +159,10 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
     try {
       const { _refs, ...spData } = form;
       if (editing) {
-        await updateSuratPenunjukan(editing.id, spData);
-        await setDocRefs('surat_penunjukan', editing.id, _refs);
+        await updateSuratPenunjukan(editing.id, spData, _refs);
         toast.show('Data Surat Penunjukan berhasil diperbarui', 'success');
       } else {
-        const created = await createSuratPenunjukan(spData);
-        await setDocRefs('surat_penunjukan', created.id, _refs);
+        await createSuratPenunjukan(spData, _refs);
         toast.show('Surat Penunjukan berhasil ditambahkan', 'success');
       }
       setModalOpen(false);

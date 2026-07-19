@@ -4,7 +4,7 @@ import type { Surat, Gambar, SuratPenunjukan, BeritaAcara, Cluster, Project, Jen
 import { JENIS_SURAT_LIST, KATEGORI_SURAT_LIST, SURAT_PREFIXES } from '../lib/types';
 import {
   createSurat, updateSurat, deleteSurat,
-  fetchDocRefs, fetchDocReferrers, setDocRefs,
+  fetchDocRefs, fetchDocReferrers,
   type SuratInput, type DocRefInput,
 } from '../lib/api';
 import { useToast } from '../components/Toast';
@@ -152,12 +152,10 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
     try {
       const { _refs, ...suratData } = form;
       if (editing) {
-        await updateSurat(editing.id, suratData);
-        await setDocRefs('surat', editing.id, _refs);
+        await updateSurat(editing.id, suratData, _refs);
         toast.show('Data surat berhasil diperbarui', 'success');
       } else {
-        const created = await createSurat(suratData);
-        await setDocRefs('surat', created.id, _refs);
+        await createSurat(suratData, _refs);
         toast.show('Surat berhasil ditambahkan', 'success');
       }
       setModalOpen(false);

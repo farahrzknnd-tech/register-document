@@ -85,3 +85,7 @@ Buka URL Vite, login dengan user Supabase Auth.
 ## 10. Peringatan service-role
 
 Service-role key memberi akses penuh dan melewati RLS. Jangan pernah expose di `.env` frontend, kode React, repo, screenshot, atau browser.
+
+## Remediasi 1.1
+
+Baseline juga menjalankan backfill dari `auth.users` ke `public.app_users`, sehingga user yang sudah dibuat sebelum migration tetap mendapat role default `viewer`.

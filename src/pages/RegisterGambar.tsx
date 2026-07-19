@@ -6,7 +6,7 @@ import type { Gambar, Surat, SuratPenunjukan, BeritaAcara, Cluster, Project, Jen
 import { JENIS_GAMBAR_LIST, STATUS_GAMBAR_LIST, GAMBAR_PREFIXES } from '../lib/types';
 import {
   createGambar, updateGambar, deleteGambar,
-  fetchDocRefs, fetchDocReferrers, setDocRefs, type GambarInput, type DocRefInput,
+  fetchDocRefs, fetchDocReferrers, type GambarInput, type DocRefInput,
 } from '../lib/api';
 import { useToast } from '../components/Toast';
 import { Modal } from '../components/Modal';
@@ -154,12 +154,10 @@ export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, cl
     setSaving(true);
     try {
       if (editing) {
-        await updateGambar(editing.id, form);
-        await setDocRefs('gambar', editing.id, formRefs);
+        await updateGambar(editing.id, form, formRefs);
         toast.show('Data gambar berhasil diperbarui', 'success');
       } else {
-        const created = await createGambar(form);
-        await setDocRefs('gambar', created.id, formRefs);
+        await createGambar(form, formRefs);
         toast.show('Gambar berhasil ditambahkan', 'success');
       }
       setModalOpen(false);

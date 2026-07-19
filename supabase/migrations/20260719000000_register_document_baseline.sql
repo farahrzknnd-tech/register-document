@@ -143,6 +143,10 @@ begin
 end $$;
 create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_auth_user();
 
+insert into public.app_users(user_id,email,role)
+select id,email,'viewer' from auth.users
+on conflict (user_id) do nothing;
+
 create or replace function public.current_user_active() returns boolean language sql stable security definer set search_path = '' as $$
   select exists(select 1 from public.app_users u where u.user_id = auth.uid() and u.active)
 $$;
@@ -278,6 +282,139 @@ begin
   perform public.set_document_refs('berita_acara',row.id,p_refs); return row;
 end $$;
 
+
+
+create or replace function public.register_prefix(p_type text, p_subtype text) returns text language plpgsql immutable set search_path = '' as $$
+begin
+  if p_type='gambar' then
+    return case p_subtype when 'Gambar Pelaksanaan' then 'GP' when 'Gambar Revisi Pelaksanaan' then 'GRP' when 'Gambar Tender' then 'GT' when 'Gambar Revisi Tender' then 'GRT' when 'Gambar Informasi' then 'GI' when 'As Built Drawing' then 'ABD' else null end;
+  elsif p_type='surat' then
+    return case p_subtype when 'Surat Masuk' then 'SM' when 'Surat Keluar' then 'SK' else null end;
+  elsif p_type='surat_penunjukan' and p_subtype='Surat Penunjukan' then
+    return 'SP';
+  elsif p_type='berita_acara' then
+    return case p_subtype when 'Berita Acara Aanwijzing' then 'AWZ' when 'Berita Acara Klarifikasi' then 'KLR' else null end;
+  end if;
+  return null;
+end $$;
+
+create or replace function public.register_year(p_register_no text) returns int language sql immutable set search_path = '' as $$
+  select (2000 + substring(p_register_no from '^[A-Z]+-([0-9]{2})-[0-9]{4}$')::int)
+$$;
+
+create or replace function public.assert_register_consistent(p_type text, p_register_no text, p_subtype text, p_date date) returns void language plpgsql stable set search_path = '' as $$
+declare v_prefix text; v_reg_prefix text; v_reg_year int;
+begin
+  v_prefix := public.register_prefix(p_type, p_subtype);
+  if v_prefix is null then raise exception 'Unsupported register subtype: %.%', p_type, p_subtype using errcode='22023'; end if;
+  v_reg_prefix := split_part(p_register_no, '-', 1);
+  v_reg_year := public.register_year(p_register_no);
+  if v_reg_prefix <> v_prefix then raise exception 'Document subtype cannot change assigned register prefix' using errcode='23514'; end if;
+  if v_reg_year is null or v_reg_year <> extract(year from p_date)::int then raise exception 'Document date year must match assigned register number' using errcode='23514'; end if;
+end $$;
+
+create or replace function public.protect_gambar_system_fields() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.register_no is distinct from old.register_no then raise exception 'Register number is immutable' using errcode='23514'; end if;
+  if new.created_at is distinct from old.created_at then raise exception 'created_at is system managed' using errcode='23514'; end if;
+  if new.updated_at is distinct from old.updated_at and pg_trigger_depth() <= 1 then raise exception 'updated_at is system managed' using errcode='23514'; end if;
+  if new.status_tindak_lanjut is distinct from old.status_tindak_lanjut and pg_trigger_depth() <= 1 then raise exception 'status_tindak_lanjut is system managed' using errcode='23514'; end if;
+  perform public.assert_register_consistent('gambar', old.register_no, new.jenis_gambar, new.tanggal_diterima);
+  return new;
+end $$;
+
+create or replace function public.protect_surat_system_fields() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.register_no is distinct from old.register_no then raise exception 'Register number is immutable' using errcode='23514'; end if;
+  if new.created_at is distinct from old.created_at then raise exception 'created_at is system managed' using errcode='23514'; end if;
+  if new.updated_at is distinct from old.updated_at and pg_trigger_depth() <= 1 then raise exception 'updated_at is system managed' using errcode='23514'; end if;
+  perform public.assert_register_consistent('surat', old.register_no, new.jenis_surat, new.tanggal_surat);
+  return new;
+end $$;
+
+create or replace function public.protect_sp_system_fields() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.register_no is distinct from old.register_no then raise exception 'Register number is immutable' using errcode='23514'; end if;
+  if new.created_at is distinct from old.created_at then raise exception 'created_at is system managed' using errcode='23514'; end if;
+  if new.updated_at is distinct from old.updated_at and pg_trigger_depth() <= 1 then raise exception 'updated_at is system managed' using errcode='23514'; end if;
+  perform public.assert_register_consistent('surat_penunjukan', old.register_no, 'Surat Penunjukan', new.tanggal_sp);
+  return new;
+end $$;
+
+create or replace function public.protect_ba_system_fields() returns trigger language plpgsql set search_path = '' as $$
+begin
+  if new.register_no is distinct from old.register_no then raise exception 'Register number is immutable' using errcode='23514'; end if;
+  if new.created_at is distinct from old.created_at then raise exception 'created_at is system managed' using errcode='23514'; end if;
+  if new.updated_at is distinct from old.updated_at and pg_trigger_depth() <= 1 then raise exception 'updated_at is system managed' using errcode='23514'; end if;
+  perform public.assert_register_consistent('berita_acara', old.register_no, new.jenis_berita_acara, new.tanggal);
+  return new;
+end $$;
+
+create or replace function public.validate_project_references(p_source_type text, p_source_id uuid) returns void language plpgsql security definer set search_path = '' as $$
+declare source_project uuid; item record;
+begin
+  source_project := public.document_project_id(p_source_type,p_source_id);
+  for item in select ref_type, ref_id from public.document_ref where source_type=p_source_type and source_id=p_source_id loop
+    if source_project <> public.document_project_id(item.ref_type,item.ref_id) then raise exception 'Cross-project document reference' using errcode='23514'; end if;
+  end loop;
+  for item in select source_type, source_id from public.document_ref where ref_type=p_source_type and ref_id=p_source_id loop
+    if source_project <> public.document_project_id(item.source_type,item.source_id) then raise exception 'Cross-project document reference' using errcode='23514'; end if;
+  end loop;
+end $$;
+
+create or replace function public.update_gambar(p_id uuid,p_project_id uuid,p_cluster_id uuid,p_judul_gambar text,p_jenis_gambar text,p_revisi text,p_status_gambar text,p_tanggal_diterima date,p_link_drive text,p_keterangan text,p_refs jsonb default '[]'::jsonb) returns public.gambar language plpgsql security definer set search_path = '' as $$
+declare row public.gambar;
+begin
+  if not exists(select 1 from public.gambar where id=p_id) then raise exception 'Document not found' using errcode='P0002'; end if;
+  perform public.assert_admin_project_cluster(p_project_id,p_cluster_id);
+  update public.gambar set project_id=p_project_id, cluster_id=p_cluster_id, judul_gambar=p_judul_gambar, jenis_gambar=p_jenis_gambar, revisi=p_revisi, status_gambar=p_status_gambar, tanggal_diterima=p_tanggal_diterima, link_drive=p_link_drive, keterangan=p_keterangan where id=p_id returning * into row;
+  perform public.set_document_refs('gambar',p_id,p_refs);
+  perform public.validate_project_references('gambar',p_id);
+  select * into row from public.gambar where id=p_id;
+  return row;
+end $$;
+
+create or replace function public.update_surat(p_id uuid,p_project_id uuid,p_cluster_id uuid,p_nomor_surat text,p_perihal text,p_jenis_surat text,p_kategori_surat text,p_pengirim text,p_penerima text,p_tanggal_surat date,p_link_drive text,p_keterangan text,p_refs jsonb default '[]'::jsonb) returns public.surat language plpgsql security definer set search_path = '' as $$
+declare row public.surat;
+begin
+  if not exists(select 1 from public.surat where id=p_id) then raise exception 'Document not found' using errcode='P0002'; end if;
+  perform public.assert_admin_project_cluster(p_project_id,p_cluster_id);
+  update public.surat set project_id=p_project_id, cluster_id=p_cluster_id, nomor_surat=p_nomor_surat, perihal=p_perihal, jenis_surat=p_jenis_surat, kategori_surat=p_kategori_surat, pengirim=p_pengirim, penerima=p_penerima, tanggal_surat=p_tanggal_surat, link_drive=p_link_drive, keterangan=p_keterangan where id=p_id returning * into row;
+  perform public.set_document_refs('surat',p_id,p_refs);
+  perform public.validate_project_references('surat',p_id);
+  select * into row from public.surat where id=p_id;
+  return row;
+end $$;
+
+create or replace function public.update_surat_penunjukan(p_id uuid,p_project_id uuid,p_cluster_id uuid,p_nomor_sp text,p_tanggal_sp date,p_nama_kontraktor text,p_jenis_pekerjaan text,p_lokasi text,p_tanggal_start date,p_tanggal_finish date,p_tanggal_kickoff date,p_link_risalah text,p_keterangan text,p_refs jsonb default '[]'::jsonb) returns public.surat_penunjukan language plpgsql security definer set search_path = '' as $$
+declare row public.surat_penunjukan;
+begin
+  if not exists(select 1 from public.surat_penunjukan where id=p_id) then raise exception 'Document not found' using errcode='P0002'; end if;
+  perform public.assert_admin_project_cluster(p_project_id,p_cluster_id);
+  update public.surat_penunjukan set project_id=p_project_id, cluster_id=p_cluster_id, nomor_sp=p_nomor_sp, tanggal_sp=p_tanggal_sp, nama_kontraktor=p_nama_kontraktor, jenis_pekerjaan=p_jenis_pekerjaan, lokasi=p_lokasi, tanggal_start=p_tanggal_start, tanggal_finish=p_tanggal_finish, tanggal_kickoff=p_tanggal_kickoff, link_risalah=p_link_risalah, keterangan=p_keterangan where id=p_id returning * into row;
+  perform public.set_document_refs('surat_penunjukan',p_id,p_refs);
+  perform public.validate_project_references('surat_penunjukan',p_id);
+  select * into row from public.surat_penunjukan where id=p_id;
+  return row;
+end $$;
+
+create or replace function public.update_berita_acara(p_id uuid,p_project_id uuid,p_cluster_id uuid,p_jenis_berita_acara text,p_tanggal date,p_perihal text,p_link_drive text,p_keterangan text,p_refs jsonb default '[]'::jsonb) returns public.berita_acara language plpgsql security definer set search_path = '' as $$
+declare row public.berita_acara;
+begin
+  if not exists(select 1 from public.berita_acara where id=p_id) then raise exception 'Document not found' using errcode='P0002'; end if;
+  perform public.assert_admin_project_cluster(p_project_id,p_cluster_id);
+  update public.berita_acara set project_id=p_project_id, cluster_id=p_cluster_id, jenis_berita_acara=p_jenis_berita_acara, tanggal=p_tanggal, perihal=p_perihal, link_drive=p_link_drive, keterangan=p_keterangan where id=p_id returning * into row;
+  perform public.set_document_refs('berita_acara',p_id,p_refs);
+  perform public.validate_project_references('berita_acara',p_id);
+  select * into row from public.berita_acara where id=p_id;
+  return row;
+end $$;
+
+create trigger protect_gambar before update on public.gambar for each row execute function public.protect_gambar_system_fields();
+create trigger protect_surat before update on public.surat for each row execute function public.protect_surat_system_fields();
+create trigger protect_sp before update on public.surat_penunjukan for each row execute function public.protect_sp_system_fields();
+create trigger protect_ba before update on public.berita_acara for each row execute function public.protect_ba_system_fields();
+
 create trigger touch_app_users before update on public.app_users for each row execute function public.touch_updated_at();
 create trigger touch_projects before update on public.projects for each row execute function public.touch_updated_at();
 create trigger touch_clusters before update on public.clusters for each row execute function public.touch_updated_at();
@@ -341,6 +478,10 @@ grant execute on function public.create_gambar(uuid,uuid,text,text,text,text,dat
 grant execute on function public.create_surat(uuid,uuid,text,text,text,text,text,text,date,text,text,jsonb) to authenticated;
 grant execute on function public.create_surat_penunjukan(uuid,uuid,text,date,text,text,text,date,date,date,text,text,jsonb) to authenticated;
 grant execute on function public.create_berita_acara(uuid,uuid,text,date,text,text,text,jsonb) to authenticated;
+grant execute on function public.update_gambar(uuid,uuid,uuid,text,text,text,text,date,text,text,jsonb) to authenticated;
+grant execute on function public.update_surat(uuid,uuid,uuid,text,text,text,text,text,text,date,text,text,jsonb) to authenticated;
+grant execute on function public.update_surat_penunjukan(uuid,uuid,uuid,text,date,text,text,text,date,date,date,text,text,jsonb) to authenticated;
+grant execute on function public.update_berita_acara(uuid,uuid,uuid,text,date,text,text,text,jsonb) to authenticated;
 grant execute on function public.set_document_refs(text,uuid,jsonb) to authenticated;
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on public.projects, public.clusters, public.gambar, public.surat, public.surat_penunjukan, public.berita_acara, public.document_ref to authenticated;
