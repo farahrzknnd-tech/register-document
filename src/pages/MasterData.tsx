@@ -33,7 +33,7 @@ export function MasterData({ projects, clusters, loading, onRefresh }: MasterDat
           <Layers className="h-4 w-4" /> Master Cluster
         </button>
       </div>
-      {tab === 'project' ? <ProjectTable projects={projects} onRefresh={onRefresh} /> : <ClusterTable clusters={clusters} onRefresh={onRefresh} />}
+      {tab === 'project' ? <ProjectTable projects={projects} onRefresh={onRefresh} /> : <ClusterTable clusters={clusters} projects={projects} onRefresh={onRefresh} />}
     </div>
   );
 }
@@ -57,14 +57,14 @@ function ProjectTable({ projects, onRefresh }: { projects: Project[]; onRefresh:
       if (editing) { await updateProject(editing.id, name, code); toast.show('Project berhasil diperbarui', 'success'); }
       else { await createProject(name, code); toast.show('Project berhasil ditambahkan', 'success'); }
       setModalOpen(false); onRefresh();
-    } catch (err: any) { toast.show(err.message || 'Gagal menyimpan', 'error'); }
+    } catch (err: unknown) { toast.show(err instanceof Error ? err.message : 'Gagal menyimpan', 'error'); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try { await deleteProject(deleteId); toast.show('Project berhasil dihapus', 'success'); onRefresh(); }
-    catch (err: any) { toast.show(err.message || 'Gagal menghapus', 'error'); }
+    catch (err: unknown) { toast.show(err instanceof Error ? err.message : 'Gagal menghapus', 'error'); }
   };
 
   return (
@@ -132,33 +132,35 @@ function ProjectTable({ projects, onRefresh }: { projects: Project[]; onRefresh:
   );
 }
 
-function ClusterTable({ clusters, onRefresh }: { clusters: Cluster[]; onRefresh: () => void }) {
+function ClusterTable({ clusters, projects, onRefresh }: { clusters: Cluster[]; projects: Project[]; onRefresh: () => void }) {
   const toast = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Cluster | null>(null);
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? '');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const openAdd = () => { setEditing(null); setName(''); setCode(''); setModalOpen(true); };
-  const openEdit = (c: Cluster) => { setEditing(c); setName(c.name); setCode(c.code || ''); setModalOpen(true); };
+  const openAdd = () => { setEditing(null); setName(''); setCode(''); setProjectId(projects[0]?.id ?? ''); setModalOpen(true); };
+  const openEdit = (c: Cluster) => { setEditing(c); setName(c.name); setCode(c.code || ''); setProjectId(c.project_id); setModalOpen(true); };
 
   const handleSave = async () => {
+    if (!projectId) { toast.show('Project wajib dipilih', 'warning'); return; }
     if (!name.trim()) { toast.show('Nama cluster wajib diisi', 'warning'); return; }
     setSaving(true);
     try {
-      if (editing) { await updateCluster(editing.id, name, code); toast.show('Cluster berhasil diperbarui', 'success'); }
-      else { await createCluster(name, code); toast.show('Cluster berhasil ditambahkan', 'success'); }
+      if (editing) { await updateCluster(editing.id, projectId, name, code); toast.show('Cluster berhasil diperbarui', 'success'); }
+      else { await createCluster(projectId, name, code); toast.show('Cluster berhasil ditambahkan', 'success'); }
       setModalOpen(false); onRefresh();
-    } catch (err: any) { toast.show(err.message || 'Gagal menyimpan', 'error'); }
+    } catch (err: unknown) { toast.show(err instanceof Error ? err.message : 'Gagal menyimpan', 'error'); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try { await deleteCluster(deleteId); toast.show('Cluster berhasil dihapus', 'success'); onRefresh(); }
-    catch (err: any) { toast.show(err.message || 'Gagal menghapus', 'error'); }
+    catch (err: unknown) { toast.show(err instanceof Error ? err.message : 'Gagal menghapus', 'error'); }
   };
 
   return (

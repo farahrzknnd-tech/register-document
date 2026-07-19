@@ -1,63 +1,68 @@
 import { supabase } from './supabase';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type QueryBuilder = any;
+type DbClient = { from: (table: string) => QueryBuilder; rpc: (fn: string, args?: unknown) => Promise<{ data: unknown; error: unknown }> };
+const db = supabase as never as DbClient;
 import type { Gambar, Surat, SuratPenunjukan, BeritaAcara, Project, Cluster, JenisGambar, JenisSurat, StatusGambar, JenisBeritaAcara, DocType, DocumentRef } from './types';
-import { calcDurasi } from './utils';
 
 // ---- Projects ----
 export async function fetchProjects(): Promise<Project[]> {
-  const { data, error } = await supabase.from('projects').select('*').order('name');
+  const { data, error } = await db.from('projects').select('*').order('name');
   if (error) throw error;
   return data ?? [];
 }
 
 export async function createProject(name: string, code: string): Promise<Project> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('projects').insert({ name, code: code || null }).select('*').single();
   if (error) throw error;
   return data;
 }
 
 export async function updateProject(id: string, name: string, code: string): Promise<Project> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('projects').update({ name, code: code || null }).eq('id', id).select('*').single();
   if (error) throw error;
   return data;
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  const { error } = await supabase.from('projects').delete().eq('id', id);
+  const { error } = await db.from('projects').delete().eq('id', id);
   if (error) throw error;
 }
 
 // ---- Clusters ----
 export async function fetchClusters(): Promise<Cluster[]> {
-  const { data, error } = await supabase.from('clusters').select('*').order('name');
+  const { data, error } = await db.from('clusters').select('*').order('name');
   if (error) throw error;
   return data ?? [];
 }
 
-export async function createCluster(name: string, code: string): Promise<Cluster> {
-  const { data, error } = await supabase
-    .from('clusters').insert({ name, code: code || null }).select('*').single();
+export async function createCluster(projectId: string, name: string, code: string): Promise<Cluster> {
+  const { data, error } = await db
+    .from('clusters').insert({ project_id: projectId, name, code: code || null }).select('*').single();
   if (error) throw error;
   return data;
 }
 
-export async function updateCluster(id: string, name: string, code: string): Promise<Cluster> {
-  const { data, error } = await supabase
-    .from('clusters').update({ name, code: code || null }).eq('id', id).select('*').single();
+export async function updateCluster(id: string, projectId: string, name: string, code: string): Promise<Cluster> {
+  const { data, error } = await db
+    .from('clusters').update({ project_id: projectId, name, code: code || null }).eq('id', id).select('*').single();
   if (error) throw error;
   return data;
 }
 
 export async function deleteCluster(id: string): Promise<void> {
-  const { error } = await supabase.from('clusters').delete().eq('id', id);
+  const { error } = await db.from('clusters').delete().eq('id', id);
   if (error) throw error;
 }
 
 // ---- Gambar ----
 export interface GambarInput {
-  judul_gambar: string;
+  project_id: string;
   cluster_id: string | null;
+  judul_gambar: string;
   jenis_gambar: JenisGambar;
   revisi: string;
   status_gambar: StatusGambar;
@@ -67,50 +72,48 @@ export interface GambarInput {
 }
 
 export async function fetchGambar(): Promise<Gambar[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gambar')
-    .select('*, cluster:clusters(*)')
+    .select('*, project:projects(*), cluster:clusters(*)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
-export async function createGambar(input: GambarInput): Promise<Gambar> {
-  const year = new Date(input.tanggal_diterima).getFullYear();
-  const { data: regNo, error: rpcError } = await supabase
-    .rpc('next_gambar_register_no', { p_jenis: input.jenis_gambar, p_tahun: year });
-  if (rpcError) throw rpcError;
-
-  const { data, error } = await supabase
-    .from('gambar').insert({ ...input, register_no: regNo })
-    .select('*, cluster:clusters(*)').single();
+export async function createGambar(input: GambarInput, refs: DocRefInput[] = []): Promise<Gambar> {
+  const { data, error } = await db.rpc('create_gambar', {
+    p_project_id: input.project_id, p_cluster_id: input.cluster_id, p_judul_gambar: input.judul_gambar,
+    p_jenis_gambar: input.jenis_gambar, p_revisi: input.revisi || null, p_status_gambar: input.status_gambar,
+    p_tanggal_diterima: input.tanggal_diterima, p_link_drive: input.link_drive || null, p_keterangan: input.keterangan || null, p_refs: refs,
+  });
   if (error) throw error;
-  return data;
+  return data as Gambar;
 }
 
 export async function updateGambar(id: string, input: GambarInput): Promise<Gambar> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gambar').update(input).eq('id', id)
-    .select('*, cluster:clusters(*)').single();
+    .select('*, project:projects(*), cluster:clusters(*)').single();
   if (error) throw error;
   return data;
 }
 
 export async function updateGambarStatus(id: string, status: StatusGambar): Promise<void> {
-  const { error } = await supabase.from('gambar').update({ status_gambar: status }).eq('id', id);
+  const { error } = await db.from('gambar').update({ status_gambar: status }).eq('id', id);
   if (error) throw error;
 }
 
 export async function deleteGambar(id: string): Promise<void> {
-  const { error } = await supabase.from('gambar').delete().eq('id', id);
+  const { error } = await db.from('gambar').delete().eq('id', id);
   if (error) throw error;
 }
 
 // ---- Surat ----
 export interface SuratInput {
+  project_id: string;
+  cluster_id: string | null;
   nomor_surat: string;
   perihal: string;
-  cluster_id: string | null;
   jenis_surat: JenisSurat;
   kategori_surat: string | null;
   pengirim: string;
@@ -121,42 +124,41 @@ export interface SuratInput {
 }
 
 export async function fetchSurat(): Promise<Surat[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('surat')
-    .select('*, cluster:clusters(*)')
+    .select('*, project:projects(*), cluster:clusters(*)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
-export async function createSurat(input: SuratInput): Promise<Surat> {
-  const year = new Date(input.tanggal_surat).getFullYear();
-  const { data: regNo, error: rpcError } = await supabase
-    .rpc('next_surat_register_no', { p_jenis: input.jenis_surat, p_tahun: year });
-  if (rpcError) throw rpcError;
-
-  const { data, error } = await supabase
-    .from('surat').insert({ ...input, register_no: regNo })
-    .select('*, cluster:clusters(*)').single();
+export async function createSurat(input: SuratInput, refs: DocRefInput[] = []): Promise<Surat> {
+  const { data, error } = await db.rpc('create_surat', {
+    p_project_id: input.project_id, p_cluster_id: input.cluster_id, p_nomor_surat: input.nomor_surat, p_perihal: input.perihal,
+    p_jenis_surat: input.jenis_surat, p_kategori_surat: input.kategori_surat || null, p_pengirim: input.pengirim || null,
+    p_penerima: input.penerima || null, p_tanggal_surat: input.tanggal_surat, p_link_drive: input.link_drive || null, p_keterangan: input.keterangan || null, p_refs: refs,
+  });
   if (error) throw error;
-  return data;
+  return data as Surat;
 }
 
 export async function updateSurat(id: string, input: SuratInput): Promise<Surat> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('surat').update(input).eq('id', id)
-    .select('*, cluster:clusters(*)').single();
+    .select('*, project:projects(*), cluster:clusters(*)').single();
   if (error) throw error;
   return data;
 }
 
 export async function deleteSurat(id: string): Promise<void> {
-  const { error } = await supabase.from('surat').delete().eq('id', id);
+  const { error } = await db.from('surat').delete().eq('id', id);
   if (error) throw error;
 }
 
 // ---- Surat Penunjukan ----
 export interface SuratPenunjukanInput {
+  project_id: string;
+  cluster_id: string | null;
   nomor_sp: string;
   tanggal_sp: string;
   nama_kontraktor: string;
@@ -170,39 +172,35 @@ export interface SuratPenunjukanInput {
 }
 
 export async function fetchSuratPenunjukan(): Promise<SuratPenunjukan[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('surat_penunjukan')
-    .select('*')
+    .select('*, project:projects(*), cluster:clusters(*)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
-export async function createSuratPenunjukan(input: SuratPenunjukanInput): Promise<SuratPenunjukan> {
-  const year = new Date(input.tanggal_sp).getFullYear();
-  const { data: regNo, error: rpcError } = await supabase
-    .rpc('next_surat_penunjukan_register_no', { p_tahun: year });
-  if (rpcError) throw rpcError;
-
-  const durasi = calcDurasi(input.tanggal_start, input.tanggal_finish);
-  const { data, error } = await supabase
-    .from('surat_penunjukan').insert({ ...input, register_no: regNo, durasi })
-    .select('*').single();
+export async function createSuratPenunjukan(input: SuratPenunjukanInput, refs: DocRefInput[] = []): Promise<SuratPenunjukan> {
+  const { data, error } = await db.rpc('create_surat_penunjukan', {
+    p_project_id: input.project_id, p_cluster_id: input.cluster_id, p_nomor_sp: input.nomor_sp, p_tanggal_sp: input.tanggal_sp,
+    p_nama_kontraktor: input.nama_kontraktor, p_jenis_pekerjaan: input.jenis_pekerjaan, p_lokasi: input.lokasi || null,
+    p_tanggal_start: input.tanggal_start, p_tanggal_finish: input.tanggal_finish, p_tanggal_kickoff: input.tanggal_kickoff,
+    p_link_risalah: input.link_risalah || null, p_keterangan: input.keterangan || null, p_refs: refs,
+  });
   if (error) throw error;
-  return data;
+  return data as SuratPenunjukan;
 }
 
 export async function updateSuratPenunjukan(id: string, input: SuratPenunjukanInput): Promise<SuratPenunjukan> {
-  const durasi = calcDurasi(input.tanggal_start, input.tanggal_finish);
-  const { data, error } = await supabase
-    .from('surat_penunjukan').update({ ...input, durasi }).eq('id', id)
+  const { data, error } = await db
+    .from('surat_penunjukan').update(input).eq('id', id)
     .select('*').single();
   if (error) throw error;
   return data;
 }
 
 export async function deleteSuratPenunjukan(id: string): Promise<void> {
-  const { error } = await supabase.from('surat_penunjukan').delete().eq('id', id);
+  const { error } = await db.from('surat_penunjukan').delete().eq('id', id);
   if (error) throw error;
 }
 
@@ -214,15 +212,17 @@ export interface DocRefInput {
 }
 
 export async function fetchBeritaAcara(): Promise<BeritaAcara[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('berita_acara')
-    .select('*')
+    .select('*, project:projects(*), cluster:clusters(*)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
 export interface BeritaAcaraInput {
+  project_id: string;
+  cluster_id: string | null;
   jenis_berita_acara: JenisBeritaAcara;
   tanggal: string;
   perihal: string;
@@ -230,34 +230,30 @@ export interface BeritaAcaraInput {
   keterangan: string;
 }
 
-export async function createBeritaAcara(input: BeritaAcaraInput): Promise<BeritaAcara> {
-  const year = new Date(input.tanggal).getFullYear();
-  const { data: regNo, error: rpcError } = await supabase
-    .rpc('next_berita_acara_register_no', { p_jenis: input.jenis_berita_acara, p_tahun: year });
-  if (rpcError) throw rpcError;
-
-  const { data, error } = await supabase
-    .from('berita_acara').insert({ ...input, register_no: regNo })
-    .select('*').single();
+export async function createBeritaAcara(input: BeritaAcaraInput, refs: DocRefInput[] = []): Promise<BeritaAcara> {
+  const { data, error } = await db.rpc('create_berita_acara', {
+    p_project_id: input.project_id, p_cluster_id: input.cluster_id, p_jenis_berita_acara: input.jenis_berita_acara,
+    p_tanggal: input.tanggal, p_perihal: input.perihal, p_link_drive: input.link_drive || null, p_keterangan: input.keterangan || null, p_refs: refs,
+  });
   if (error) throw error;
-  return data;
+  return data as BeritaAcara;
 }
 
 export async function updateBeritaAcara(id: string, input: BeritaAcaraInput): Promise<BeritaAcara> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('berita_acara').update(input).eq('id', id)
-    .select('*').single();
+    .select('*, project:projects(*), cluster:clusters(*)').single();
   if (error) throw error;
   return data;
 }
 
 export async function deleteBeritaAcara(id: string): Promise<void> {
-  const { error } = await supabase.from('berita_acara').delete().eq('id', id);
+  const { error } = await db.from('berita_acara').delete().eq('id', id);
   if (error) throw error;
 }
 
 export async function fetchDocRefs(sourceType: DocType, sourceId: string): Promise<DocumentRef[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('document_ref')
     .select('*')
     .eq('source_type', sourceType)
@@ -267,7 +263,7 @@ export async function fetchDocRefs(sourceType: DocType, sourceId: string): Promi
 }
 
 export async function fetchDocReferrers(refType: DocType, refId: string): Promise<DocumentRef[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('document_ref')
     .select('*')
     .eq('ref_type', refType)
@@ -276,26 +272,7 @@ export async function fetchDocReferrers(refType: DocType, refId: string): Promis
   return data ?? [];
 }
 
-export async function setDocRefs(
-  sourceType: DocType,
-  sourceId: string,
-  refs: DocRefInput[]
-): Promise<void> {
-  const { error: delError } = await supabase
-    .from('document_ref')
-    .delete()
-    .eq('source_type', sourceType)
-    .eq('source_id', sourceId);
-  if (delError) throw delError;
-
-  if (refs.length > 0) {
-    const rows = refs.map((r) => ({
-      source_type: sourceType,
-      source_id: sourceId,
-      ref_type: r.ref_type,
-      ref_id: r.ref_id,
-    }));
-    const { error: insError } = await supabase.from('document_ref').insert(rows);
-    if (insError) throw insError;
-  }
+export async function setDocRefs(sourceType: DocType, sourceId: string, refs: DocRefInput[]): Promise<void> {
+  const { error } = await db.rpc('set_document_refs', { p_source_type: sourceType, p_source_id: sourceId, p_refs: refs });
+  if (error) throw error;
 }

@@ -106,7 +106,7 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
 
       XLSX.writeFile(wb, `Laporan_Register_${new Date().toISOString().slice(0, 10)}.xlsx`);
       toast.show('File Excel berhasil diunduh', 'success');
-    } catch (err: any) { toast.show('Gagal export Excel: ' + err.message, 'error'); }
+    } catch (err: unknown) { toast.show('Gagal export Excel: ' + (err instanceof Error ? err.message : String(err)), 'error'); }
   };
 
   const exportPDF = () => {
@@ -127,14 +127,14 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
       });
 
       autoTable(doc, {
-        startY: (doc as any).lastAutoTable.finalY + 8,
+        startY: (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8,
         head: [['Jenis Gambar', 'Jumlah']],
         body: recap.gambarByJenis.map((d) => [d.jenis, String(d.count)]),
         theme: 'striped', headStyles: { fillColor: [37, 99, 235] }, styles: { fontSize: 9 },
       });
 
       autoTable(doc, {
-        startY: (doc as any).lastAutoTable.finalY + 8,
+        startY: (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8,
         head: [['Jenis Surat', 'Jumlah']],
         body: recap.suratByJenis.map((d) => [d.jenis, String(d.count)]),
         theme: 'striped', headStyles: { fillColor: [37, 99, 235] }, styles: { fontSize: 9 },
@@ -142,7 +142,7 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
 
       doc.save(`Laporan_Register_${new Date().toISOString().slice(0, 10)}.pdf`);
       toast.show('File PDF berhasil diunduh', 'success');
-    } catch (err: any) { toast.show('Gagal export PDF: ' + err.message, 'error'); }
+    } catch (err: unknown) { toast.show('Gagal export PDF: ' + (err instanceof Error ? err.message : String(err)), 'error'); }
   };
 
   if (loading) return <Loading label="Memuat laporan..." />;

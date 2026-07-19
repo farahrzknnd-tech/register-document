@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Plus, Mail, ArrowLeft, Inbox, Send, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
-import type { Surat, Gambar, SuratPenunjukan, BeritaAcara, Cluster, JenisSurat, DocType, DocumentSummary, UserRole } from '../lib/types';
+import type { Surat, Gambar, SuratPenunjukan, BeritaAcara, Cluster, Project, JenisSurat, DocType, DocumentSummary, UserRole } from '../lib/types';
 import { JENIS_SURAT_LIST, KATEGORI_SURAT_LIST, SURAT_PREFIXES } from '../lib/types';
 import {
   createSurat, updateSurat, deleteSurat,
@@ -27,6 +27,7 @@ interface SuratPageProps {
   suratPenunjukan: SuratPenunjukan[];
   beritaAcara: BeritaAcara[];
   clusters: Cluster[];
+  projects: Project[];
   loading: boolean;
   role: UserRole;
   onRefresh: () => void;
@@ -40,6 +41,7 @@ interface SuratFormState extends SuratInput {
 }
 
 const emptyForm: SuratFormState = {
+  project_id: '',
   nomor_surat: '', perihal: '', cluster_id: null,
   jenis_surat: 'Surat Masuk', kategori_surat: null,
   pengirim: '', penerima: '',
@@ -47,7 +49,7 @@ const emptyForm: SuratFormState = {
   _refs: [],
 };
 
-export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clusters, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: SuratPageProps) {
+export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clusters, projects, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: SuratPageProps) {
   const isAdmin = role === 'admin';
   const toast = useToast();
   const [search, setSearch] = useState('');
@@ -106,7 +108,7 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
   const openEdit = async (s: Surat) => {
     setEditing(s);
     setForm({
-      nomor_surat: s.nomor_surat, perihal: s.perihal, cluster_id: s.cluster_id,
+      project_id: s.project_id, nomor_surat: s.nomor_surat, perihal: s.perihal, cluster_id: s.cluster_id,
       jenis_surat: s.jenis_surat, kategori_surat: s.kategori_surat,
       pengirim: s.pengirim || '', penerima: s.penerima || '',
       tanggal_surat: s.tanggal_surat, link_drive: s.link_drive || '', keterangan: s.keterangan || '',
@@ -160,8 +162,8 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
       }
       setModalOpen(false);
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menyimpan data', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menyimpan data', 'error');
     } finally {
       setSaving(false);
     }
@@ -173,8 +175,8 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
       await deleteSurat(deleteId);
       toast.show('Surat berhasil dihapus', 'success');
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menghapus', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menghapus', 'error');
     }
   };
 
@@ -368,7 +370,7 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
             {saving ? 'Menyimpan...' : editing ? 'Simpan Perubahan' : 'Simpan'}
           </button>
         </>}>
-        <SuratForm form={form} setForm={setForm} clusters={clusters} editing={!!editing}
+        <SuratForm form={form} setForm={setForm} projects={projects} clusters={clusters} editing={!!editing}
           allDocs={allDocs} excludeId={editing?.id} excludeType="surat" />
       </Modal>
 
@@ -378,11 +380,11 @@ export function RegisterSurat({ surat, gambar, suratPenunjukan, beritaAcara, clu
   );
 }
 
-function SuratForm({ form, setForm, clusters, editing, allDocs, excludeId, excludeType }: {
-  form: SuratFormState; setForm: (f: SuratFormState) => void; clusters: Cluster[]; editing: boolean;
+function SuratForm({ form, setForm, projects, clusters, editing, allDocs, excludeId, excludeType }: {
+  form: SuratFormState; setForm: (f: SuratFormState) => void; projects: Project[]; clusters: Cluster[]; editing: boolean;
   allDocs: DocumentSummary[]; excludeId?: string; excludeType?: DocType;
 }) {
-  const set = (key: keyof SuratFormState, value: any) => setForm({ ...form, [key]: value });
+  const set = (key: keyof SuratFormState, value: unknown) => setForm({ ...form, [key]: value });
   const prefix = SURAT_PREFIXES[form.jenis_surat];
   const year = new Date(form.tanggal_surat).getFullYear();
   const yearShort = String(year).slice(2);
@@ -398,10 +400,17 @@ function SuratForm({ form, setForm, clusters, editing, allDocs, excludeId, exclu
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
+        <label className="label">Project *</label>
+        <select className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value, cluster_id: null })}>
+          <option value="">Pilih Project</option>
+          {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+      </div>
+      <div>
         <label className="label">Cluster</label>
-        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)}>
-          <option value="">Pilih Cluster</option>
-          {clusters.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
+          <option value="">Tanpa Cluster</option>
+          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
       <div>

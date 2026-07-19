@@ -1,16 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
+import { requireEnv } from './env';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase env vars. Check .env file.');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-  },
-});
+export const supabase = createClient<Database>(
+  requireEnv('VITE_SUPABASE_URL'),
+  requireEnv('VITE_SUPABASE_ANON_KEY'),
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } },
+);

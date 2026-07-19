@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import {
   Plus, FileImage, ArrowLeft, CheckCircle2, XCircle, ArrowLeftCircle, ArrowRightCircle,
 } from 'lucide-react';
-import type { Gambar, Surat, SuratPenunjukan, BeritaAcara, Cluster, JenisGambar, StatusGambar, DocType, DocumentSummary, UserRole } from '../lib/types';
+import type { Gambar, Surat, SuratPenunjukan, BeritaAcara, Cluster, Project, JenisGambar, StatusGambar, DocType, DocumentSummary, UserRole } from '../lib/types';
 import { JENIS_GAMBAR_LIST, STATUS_GAMBAR_LIST, GAMBAR_PREFIXES } from '../lib/types';
 import {
   createGambar, updateGambar, deleteGambar,
@@ -28,6 +28,7 @@ interface GambarPageProps {
   suratPenunjukan: SuratPenunjukan[];
   beritaAcara: BeritaAcara[];
   clusters: Cluster[];
+  projects: Project[];
   loading: boolean;
   role: UserRole;
   onRefresh: () => void;
@@ -45,12 +46,13 @@ const jenisColors: Record<string, string> = {
 };
 
 const emptyForm: GambarInput = {
+  project_id: '',
   judul_gambar: '', cluster_id: null,
   jenis_gambar: 'Gambar Pelaksanaan', revisi: '', status_gambar: 'Aktif (Latest)',
   tanggal_diterima: new Date().toISOString().slice(0, 10), link_drive: '', keterangan: '',
 };
 
-export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, clusters, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: GambarPageProps) {
+export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, clusters, projects, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: GambarPageProps) {
   const isAdmin = role === 'admin';
   const toast = useToast();
   const [search, setSearch] = useState('');
@@ -110,7 +112,7 @@ export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, cl
   const openEdit = async (g: Gambar) => {
     setEditing(g);
     setForm({
-      judul_gambar: g.judul_gambar, cluster_id: g.cluster_id,
+      project_id: g.project_id, judul_gambar: g.judul_gambar, cluster_id: g.cluster_id,
       jenis_gambar: g.jenis_gambar, revisi: g.revisi || '',
       status_gambar: g.status_gambar, tanggal_diterima: g.tanggal_diterima,
       link_drive: g.link_drive || '', keterangan: g.keterangan || '',
@@ -162,8 +164,8 @@ export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, cl
       }
       setModalOpen(false);
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menyimpan data', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menyimpan data', 'error');
     } finally {
       setSaving(false);
     }
@@ -175,8 +177,8 @@ export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, cl
       await deleteGambar(deleteId);
       toast.show('Gambar berhasil dihapus', 'success');
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menghapus', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menghapus', 'error');
     }
   };
 
@@ -377,7 +379,7 @@ export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, cl
             {saving ? 'Menyimpan...' : editing ? 'Simpan Perubahan' : 'Simpan'}
           </button>
         </>}>
-        <GambarForm form={form} setForm={setForm} clusters={clusters} editing={!!editing}
+        <GambarForm form={form} setForm={setForm} projects={projects} clusters={clusters} editing={!!editing}
           allDocs={allDocs} formRefs={formRefs} setFormRefs={setFormRefs}
           excludeId={editing?.id} excludeType="gambar" />
       </Modal>
@@ -388,12 +390,12 @@ export function RegisterGambar({ gambar, surat, suratPenunjukan, beritaAcara, cl
   );
 }
 
-function GambarForm({ form, setForm, clusters, editing, allDocs, formRefs, setFormRefs, excludeId, excludeType }: {
-  form: GambarInput; setForm: (f: GambarInput) => void; clusters: Cluster[]; editing: boolean;
+function GambarForm({ form, setForm, projects, clusters, editing, allDocs, formRefs, setFormRefs, excludeId, excludeType }: {
+  form: GambarInput; setForm: (f: GambarInput) => void; projects: Project[]; clusters: Cluster[]; editing: boolean;
   allDocs: DocumentSummary[]; formRefs: DocRefInput[]; setFormRefs: (r: DocRefInput[]) => void;
   excludeId?: string; excludeType?: DocType;
 }) {
-  const set = (key: keyof GambarInput, value: any) => setForm({ ...form, [key]: value });
+  const set = (key: keyof GambarInput, value: unknown) => setForm({ ...form, [key]: value });
   const prefix = GAMBAR_PREFIXES[form.jenis_gambar];
   const year = new Date(form.tanggal_diterima).getFullYear();
   const yearShort = String(year).slice(2);
@@ -401,10 +403,17 @@ function GambarForm({ form, setForm, clusters, editing, allDocs, formRefs, setFo
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
+        <label className="label">Project *</label>
+        <select className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value, cluster_id: null })}>
+          <option value="">Pilih Project</option>
+          {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+      </div>
+      <div>
         <label className="label">Cluster</label>
-        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)}>
-          <option value="">Pilih Cluster</option>
-          {clusters.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
+          <option value="">Tanpa Cluster</option>
+          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
         </select>
       </div>
       <div>

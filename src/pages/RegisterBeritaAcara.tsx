@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Plus, FileCheck, ArrowLeft, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
-import type { BeritaAcara, Gambar, Surat, SuratPenunjukan, JenisBeritaAcara, DocType, DocumentSummary, UserRole } from '../lib/types';
+import type { BeritaAcara, Gambar, Surat, SuratPenunjukan, JenisBeritaAcara, DocType, DocumentSummary, UserRole, Project, Cluster } from '../lib/types';
 import { JENIS_BERITA_ACARA_LIST, BERITA_ACARA_PREFIXES } from '../lib/types';
 import {
   createBeritaAcara, updateBeritaAcara, deleteBeritaAcara,
@@ -26,6 +26,8 @@ interface BeritaAcaraPageProps {
   gambar: Gambar[];
   surat: Surat[];
   suratPenunjukan: SuratPenunjukan[];
+  clusters: Cluster[];
+  projects: Project[];
   loading: boolean;
   role: UserRole;
   onRefresh: () => void;
@@ -39,6 +41,8 @@ interface BAFormState extends BeritaAcaraInput {
 }
 
 const emptyForm: BAFormState = {
+  project_id: '',
+  cluster_id: null,
   jenis_berita_acara: 'Berita Acara Aanwijzing',
   tanggal: new Date().toISOString().slice(0, 10),
   perihal: '', link_drive: '', keterangan: '',
@@ -50,7 +54,7 @@ const jenisColors: Record<string, string> = {
   'Berita Acara Klarifikasi': 'purple',
 };
 
-export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjukan, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: BeritaAcaraPageProps) {
+export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjukan, clusters, projects, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: BeritaAcaraPageProps) {
   const isAdmin = role === 'admin';
   const toast = useToast();
   const [search, setSearch] = useState('');
@@ -103,6 +107,8 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
   const openEdit = async (b: BeritaAcara) => {
     setEditing(b);
     setForm({
+      project_id: b.project_id,
+      cluster_id: b.cluster_id,
       jenis_berita_acara: b.jenis_berita_acara,
       tanggal: b.tanggal,
       perihal: b.perihal,
@@ -158,8 +164,8 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
       }
       setModalOpen(false);
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menyimpan data', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menyimpan data', 'error');
     } finally {
       setSaving(false);
     }
@@ -171,8 +177,8 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
       await deleteBeritaAcara(deleteId);
       toast.show('Berita Acara berhasil dihapus', 'success');
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menghapus', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menghapus', 'error');
     }
   };
 
@@ -339,7 +345,7 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
             {saving ? 'Menyimpan...' : editing ? 'Simpan Perubahan' : 'Simpan'}
           </button>
         </>}>
-        <BeritaAcaraForm form={form} setForm={setForm} editing={!!editing}
+        <BeritaAcaraForm form={form} setForm={setForm} projects={projects} clusters={clusters} editing={!!editing}
           allDocs={allDocs} excludeId={editing?.id} excludeType="berita_acara" />
       </Modal>
 
@@ -349,17 +355,31 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
   );
 }
 
-function BeritaAcaraForm({ form, setForm, editing, allDocs, excludeId, excludeType }: {
-  form: BAFormState; setForm: (f: BAFormState) => void; editing: boolean;
+function BeritaAcaraForm({ form, setForm, projects, clusters, editing, allDocs, excludeId, excludeType }: {
+  form: BAFormState; setForm: (f: BAFormState) => void; projects: Project[]; clusters: Cluster[]; editing: boolean;
   allDocs: DocumentSummary[]; excludeId?: string; excludeType?: DocType;
 }) {
-  const set = (key: keyof BAFormState, value: any) => setForm({ ...form, [key]: value });
+  const set = (key: keyof BAFormState, value: unknown) => setForm({ ...form, [key]: value });
   const prefix = BERITA_ACARA_PREFIXES[form.jenis_berita_acara];
   const year = new Date(form.tanggal).getFullYear();
   const yearShort = String(year).slice(2);
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label className="label">Project *</label>
+        <select className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value, cluster_id: null })}>
+          <option value="">Pilih Project</option>
+          {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="label">Cluster</label>
+        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
+          <option value="">Tanpa Cluster</option>
+          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
+        </select>
+      </div>
       <div>
         <label className="label">Jenis Berita Acara</label>
         <select className="input" value={form.jenis_berita_acara} onChange={(e) => set('jenis_berita_acara', e.target.value as JenisBeritaAcara)}>

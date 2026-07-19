@@ -12,7 +12,9 @@ import { Laporan } from './pages/Laporan';
 import {
   fetchGambar, fetchSurat, fetchBeritaAcara, fetchSuratPenunjukan, fetchProjects, fetchClusters,
 } from './lib/api';
-import type { Gambar, Surat, BeritaAcara, SuratPenunjukan, Project, Cluster, DocType, UserRole } from './lib/types';
+import type { Gambar, Surat, BeritaAcara, SuratPenunjukan, Project, Cluster, DocType } from './lib/types';
+import { useAuth } from './lib/auth';
+import { Login } from './pages/Login';
 
 type PendingDetail =
   | { type: 'gambar'; doc: Gambar }
@@ -31,7 +33,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [pendingDetail, setPendingDetail] = useState<PendingDetail>(null);
-  const [role, setRole] = useState<UserRole>('admin');
+  const { user, role, loading: authLoading, error: authError, signOut } = useAuth();
 
   const loadAll = useCallback(async () => {
     const [g, s, ba, sp, p, c] = await Promise.all([
@@ -41,10 +43,11 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!user || !role) { setLoading(false); return; }
     loadAll()
       .catch((err) => console.error('Failed to load data:', err))
       .finally(() => setLoading(false));
-  }, [loadAll]);
+  }, [loadAll, role, user]);
 
   const handleRefresh = useCallback(() => {
     loadAll().catch((err) => console.error('Failed to refresh:', err));
@@ -74,11 +77,13 @@ function App() {
     setPendingDetail(null);
   };
 
-  if (loading) return <FullPageLoading />;
+  if (authLoading || loading) return <FullPageLoading />;
+  if (!user) return <ToastProvider><Login /></ToastProvider>;
+  if (authError || !role) return <ToastProvider><div className="p-6 text-red-700">{authError ?? 'Profil pengguna tidak ditemukan.'}</div></ToastProvider>;
 
   return (
     <ToastProvider>
-      <Layout current={page} onNavigate={setPage} role={role} onRoleChange={setRole}>
+      <Layout current={page} onNavigate={setPage} role={role} email={user.email ?? null} onLogout={() => { void signOut(); }}>
         {page === 'dashboard' && (
           <Dashboard
             gambar={gambar}
@@ -99,6 +104,7 @@ function App() {
             suratPenunjukan={suratPenunjukan}
             beritaAcara={beritaAcara}
             clusters={clusters}
+            projects={projects}
             loading={false}
             role={role}
             onRefresh={handleRefresh}
@@ -114,6 +120,7 @@ function App() {
             suratPenunjukan={suratPenunjukan}
             beritaAcara={beritaAcara}
             clusters={clusters}
+            projects={projects}
             loading={false}
             role={role}
             onRefresh={handleRefresh}
@@ -128,6 +135,8 @@ function App() {
             gambar={gambar}
             surat={surat}
             suratPenunjukan={suratPenunjukan}
+            projects={projects}
+            clusters={clusters}
             loading={false}
             role={role}
             onRefresh={handleRefresh}
@@ -142,6 +151,8 @@ function App() {
             gambar={gambar}
             surat={surat}
             beritaAcara={beritaAcara}
+            projects={projects}
+            clusters={clusters}
             loading={false}
             role={role}
             onRefresh={handleRefresh}

@@ -22,7 +22,8 @@ interface LayoutProps {
   current: PageId;
   onNavigate: (p: PageId) => void;
   role: UserRole;
-  onRoleChange: (r: UserRole) => void;
+  email: string | null;
+  onLogout: () => void;
   children: ReactNode;
 }
 
@@ -36,10 +37,10 @@ const allMenuItems: { id: PageId; label: string; icon: typeof LayoutDashboard; a
   { id: 'laporan', label: 'Laporan', icon: BarChart3 },
 ];
 
-export function Layout({ current, onNavigate, role, onRoleChange, children }: LayoutProps) {
+export function Layout({ current, onNavigate, role, email, onLogout, children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const menuItems = allMenuItems.filter((m) => !(m.adminOnly && role === 'umum'));
+  const menuItems = allMenuItems.filter((m) => !(m.adminOnly && role !== 'admin'));
 
   const handleNav = (p: PageId) => {
     onNavigate(p);
@@ -93,36 +94,16 @@ export function Layout({ current, onNavigate, role, onRoleChange, children }: La
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 p-4">
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs font-semibold text-gray-500">Mode Akses</label>
-            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-              <button
-                onClick={() => onRoleChange('admin')}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold transition-all ${
-                  role === 'admin' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Shield className="h-3.5 w-3.5" /> Admin
-              </button>
-              <button
-                onClick={() => onRoleChange('umum')}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold transition-all ${
-                  role === 'umum' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Eye className="h-3.5 w-3.5" /> Umum
-              </button>
-            </div>
-          </div>
           <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
-              {role === 'admin' ? 'A' : 'U'}
+              {role === 'admin' ? 'A' : 'V'}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-gray-900">{role === 'admin' ? 'Admin Project' : 'Pengguna Umum'}</p>
+              <p className="truncate text-sm font-semibold text-gray-900">{email ?? 'Pengguna'}</p>
               <p className="truncate text-xs text-gray-500">{ROLE_LABELS[role]}</p>
             </div>
           </div>
+          <button onClick={onLogout} className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">Logout</button>
         </div>
       </aside>
 

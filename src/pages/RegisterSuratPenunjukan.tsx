@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Plus, FileSignature, ArrowLeft, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
-import type { SuratPenunjukan, Gambar, Surat, BeritaAcara, DocType, DocumentSummary, UserRole } from '../lib/types';
+import type { SuratPenunjukan, Gambar, Surat, BeritaAcara, DocType, DocumentSummary, UserRole, Project, Cluster } from '../lib/types';
 import {
   createSuratPenunjukan, updateSuratPenunjukan, deleteSuratPenunjukan,
   fetchDocRefs, fetchDocReferrers, setDocRefs,
@@ -25,6 +25,8 @@ interface SuratPenunjukanPageProps {
   gambar: Gambar[];
   surat: Surat[];
   beritaAcara: BeritaAcara[];
+  clusters: Cluster[];
+  projects: Project[];
   loading: boolean;
   role: UserRole;
   onRefresh: () => void;
@@ -38,6 +40,8 @@ interface SPFormState extends SuratPenunjukanInput {
 }
 
 const emptyForm: SPFormState = {
+  project_id: '',
+  cluster_id: null,
   nomor_sp: '', tanggal_sp: new Date().toISOString().slice(0, 10),
   nama_kontraktor: '', jenis_pekerjaan: '', lokasi: '',
   tanggal_start: null, tanggal_finish: null, tanggal_kickoff: null,
@@ -45,7 +49,7 @@ const emptyForm: SPFormState = {
   _refs: [],
 };
 
-export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, beritaAcara, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: SuratPenunjukanPageProps) {
+export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, beritaAcara, clusters, projects, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: SuratPenunjukanPageProps) {
   const isAdmin = role === 'admin';
   const toast = useToast();
   const [search, setSearch] = useState('');
@@ -111,7 +115,7 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
   const openEdit = async (s: SuratPenunjukan) => {
     setEditing(s);
     setForm({
-      nomor_sp: s.nomor_sp, tanggal_sp: s.tanggal_sp,
+      project_id: s.project_id, cluster_id: s.cluster_id, nomor_sp: s.nomor_sp, tanggal_sp: s.tanggal_sp,
       nama_kontraktor: s.nama_kontraktor, jenis_pekerjaan: s.jenis_pekerjaan,
       lokasi: s.lokasi || '', tanggal_start: s.tanggal_start, tanggal_finish: s.tanggal_finish,
       tanggal_kickoff: s.tanggal_kickoff, link_risalah: s.link_risalah || '', keterangan: s.keterangan || '',
@@ -165,8 +169,8 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
       }
       setModalOpen(false);
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menyimpan data', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menyimpan data', 'error');
     } finally {
       setSaving(false);
     }
@@ -178,8 +182,8 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
       await deleteSuratPenunjukan(deleteId);
       toast.show('Surat Penunjukan berhasil dihapus', 'success');
       onRefresh();
-    } catch (err: any) {
-      toast.show(err.message || 'Gagal menghapus', 'error');
+    } catch (err: unknown) {
+      toast.show(err instanceof Error ? err.message : 'Gagal menghapus', 'error');
     }
   };
 
@@ -368,7 +372,7 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
             {saving ? 'Menyimpan...' : editing ? 'Simpan Perubahan' : 'Simpan'}
           </button>
         </>}>
-        <SuratPenunjukanForm form={form} setForm={setForm} editing={!!editing}
+        <SuratPenunjukanForm form={form} setForm={setForm} projects={projects} clusters={clusters} editing={!!editing}
           allDocs={allDocs} excludeId={editing?.id} excludeType="surat_penunjukan" />
       </Modal>
 
@@ -378,17 +382,31 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
   );
 }
 
-function SuratPenunjukanForm({ form, setForm, editing, allDocs, excludeId, excludeType }: {
-  form: SPFormState; setForm: (f: SPFormState) => void; editing: boolean;
+function SuratPenunjukanForm({ form, setForm, projects, clusters, editing, allDocs, excludeId, excludeType }: {
+  form: SPFormState; setForm: (f: SPFormState) => void; projects: Project[]; clusters: Cluster[]; editing: boolean;
   allDocs: DocumentSummary[]; excludeId?: string; excludeType?: DocType;
 }) {
-  const set = (key: keyof SPFormState, value: any) => setForm({ ...form, [key]: value });
+  const set = (key: keyof SPFormState, value: unknown) => setForm({ ...form, [key]: value });
   const year = new Date(form.tanggal_sp).getFullYear();
   const yearShort = String(year).slice(2);
   const durasi = calcDurasi(form.tanggal_start, form.tanggal_finish);
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label className="label">Project *</label>
+        <select className="input" value={form.project_id} onChange={(e) => setForm({ ...form, project_id: e.target.value, cluster_id: null })}>
+          <option value="">Pilih Project</option>
+          {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="label">Cluster</label>
+        <select className="input" value={form.cluster_id || ''} onChange={(e) => set('cluster_id', e.target.value || null)} disabled={!form.project_id}>
+          <option value="">Tanpa Cluster</option>
+          {clusters.filter((cluster) => cluster.project_id === form.project_id).map((cluster) => <option key={cluster.id} value={cluster.id}>{cluster.name}</option>)}
+        </select>
+      </div>
       <div>
         <label className="label">Nomor Surat Penunjukan *</label>
         <input className="input" value={form.nomor_sp} onChange={(e) => set('nomor_sp', e.target.value)} placeholder="cth: SP-001/2026" />

@@ -3,13 +3,17 @@ export interface Project {
   name: string;
   code: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Cluster {
   id: string;
+  project_id: string;
   name: string;
   code: string | null;
   created_at: string;
+  updated_at?: string;
+  project?: Project | null;
 }
 
 export type JenisGambar =
@@ -25,6 +29,7 @@ export type StatusTindakLanjut = 'Belum Ada Tindak Lanjut' | 'Sudah Dibuat Surat
 
 export interface Gambar {
   id: string;
+  project_id: string;
   register_no: string | null;
   judul_gambar: string;
   cluster_id: string | null;
@@ -37,6 +42,7 @@ export interface Gambar {
   keterangan: string | null;
   created_at: string;
   cluster?: Cluster | null;
+  project?: Project | null;
 }
 
 export type JenisSurat = 'Surat Masuk' | 'Surat Keluar';
@@ -45,6 +51,7 @@ export type KategoriSurat = 'Surat Keluar' | 'IPP' | 'IPL' | 'Internal Memo';
 
 export interface Surat {
   id: string;
+  project_id: string;
   register_no: string | null;
   nomor_surat: string;
   perihal: string;
@@ -58,6 +65,7 @@ export interface Surat {
   keterangan: string | null;
   created_at: string;
   cluster?: Cluster | null;
+  project?: Project | null;
 }
 
 // ---- Document Reference System ----
@@ -92,6 +100,8 @@ export type JenisBeritaAcara = 'Berita Acara Aanwijzing' | 'Berita Acara Klarifi
 
 export interface BeritaAcara {
   id: string;
+  project_id: string;
+  cluster_id: string | null;
   register_no: string | null;
   jenis_berita_acara: JenisBeritaAcara;
   tanggal: string;
@@ -99,6 +109,8 @@ export interface BeritaAcara {
   link_drive: string | null;
   keterangan: string | null;
   created_at: string;
+  cluster?: Cluster | null;
+  project?: Project | null;
 }
 
 export const JENIS_BERITA_ACARA_LIST: JenisBeritaAcara[] = [
@@ -113,6 +125,8 @@ export const BERITA_ACARA_PREFIXES: Record<JenisBeritaAcara, string> = {
 
 export interface SuratPenunjukan {
   id: string;
+  project_id: string;
+  cluster_id: string | null;
   register_no: string | null;
   nomor_sp: string;
   tanggal_sp: string;
@@ -126,6 +140,8 @@ export interface SuratPenunjukan {
   link_risalah: string | null;
   keterangan: string | null;
   created_at: string;
+  cluster?: Cluster | null;
+  project?: Project | null;
 }
 
 export const JENIS_GAMBAR_LIST: JenisGambar[] = [
@@ -170,9 +186,9 @@ export const SURAT_PREFIXES: Record<JenisSurat, string> = {
   'Surat Keluar': 'SK',
 };
 
-export type UserRole = 'admin' | 'umum';
+export type UserRole = 'admin' | 'viewer';
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Admin',
-  umum: 'Umum (View Only)',
+  viewer: 'Viewer (Read Only)',
 };
