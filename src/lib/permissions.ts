@@ -15,3 +15,8 @@ export const clustersForProject = (clusters: Cluster[], projectId: string) => {
 };
 export const normalizeRefs = (refs: { ref_type: DocType; ref_id: string }[]) => refs.map((ref) => ({ ref_type: ref.ref_type, ref_id: ref.ref_id }));
 export const yearFromDate = (date: string) => new Date(`${date}T00:00:00`).getFullYear();
+
+export const defaultProjectIdForClusters = (projects: { id: string }[], clusters: Cluster[]) => {
+  const projectWithCluster = projects.find((project) => clusters.some((cluster) => cluster.project_id === project.id));
+  return projectWithCluster?.id ?? projects[0]?.id ?? '';
+};

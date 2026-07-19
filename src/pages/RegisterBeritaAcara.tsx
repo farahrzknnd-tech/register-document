@@ -20,7 +20,7 @@ import { DetailField, EmptyState, TableActions } from '../components/shared';
 import { DriveButtons, DetailActions } from '../components/DetailActions';
 import { printDetail } from '../lib/export';
 import { formatDate, buildAllDocSummaries, findDoc, toDocSummary } from '../lib/utils';
-import { clustersForProject } from '../lib/permissions';
+import { clustersForProject, defaultProjectIdForClusters } from '../lib/permissions';
 
 interface BeritaAcaraPageProps {
   beritaAcara: BeritaAcara[];
@@ -104,7 +104,7 @@ export function RegisterBeritaAcara({ beritaAcara, gambar, surat, suratPenunjuka
     });
   }, [beritaAcara, search, filterJenis, filterTahun]);
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
+  const openAdd = () => { setEditing(null); setForm({ ...emptyForm, project_id: defaultProjectIdForClusters(projects, clusters) }); setModalOpen(true); };
   const openEdit = async (b: BeritaAcara) => {
     setEditing(b);
     setForm({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canMutate, clustersForProject, inclusiveDuration, normalizeRefs, yearFromDate } from './permissions';
+import { canMutate, clustersForProject, defaultProjectIdForClusters, inclusiveDuration, normalizeRefs, yearFromDate } from './permissions';
 
 describe('frontend permission helpers', () => {
   it('allows only admin mutations', () => {
@@ -19,6 +19,12 @@ describe('frontend permission helpers', () => {
       { id: 'c1', project_id: 'p1', name: 'A', code: null, created_at: '' },
       { id: 'c2', project_id: 'p2', name: 'B', code: null, created_at: '' },
     ], 'p1 ').map((cluster) => cluster.id)).toEqual(['c1']);
+  });
+
+  it('prefers a project that already has clusters for form defaults', () => {
+    expect(defaultProjectIdForClusters([{ id: 'p1' }, { id: 'p2' }], [
+      { id: 'c1', project_id: 'p2', name: 'A', code: null, created_at: '' },
+    ])).toBe('p2');
   });
 
   it('maps refs and register date year', () => {
