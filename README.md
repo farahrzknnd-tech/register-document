@@ -45,3 +45,9 @@ npm run check
 - Jangan jalankan migration ke project remote otomatis dari agen.
 - Review SQL dahulu, lalu jalankan manual ke dedicated Supabase project Register Document.
 - Migration baseline diasumsikan untuk database kosong dan sengaja tidak dibuat terlalu idempotent.
+
+## Billing Monitoring Foundation
+
+Fondasi database Monitoring Billing ditambahkan melalui migration `20260719160000_add_billing_monitoring_foundation.sql`. Register Document tetap menjadi aplikasi induk dan menggunakan Auth, role, Project, Cluster, serta migration history yang sama.
+
+Lihat `docs/BILLING_DATABASE_FOUNDATION.md`. Setelah migration lokal diterapkan, jalankan `npm run db:types` sebelum melanjutkan pengembangan UI billing.

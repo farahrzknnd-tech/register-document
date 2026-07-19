@@ -59,3 +59,9 @@ Belum termasuk unified documents table, soft delete, audit history, import Excel
 - Update dokumen memakai RPC atomik `update_*` dan mengganti referensi dalam transaksi yang sama.
 - `register_no`, `created_at`, `updated_at`, dan `status_tindak_lanjut` dilindungi sebagai field sistem.
 - Subtipe dan tahun tanggal harus tetap cocok dengan prefix/tahun pada `register_no`.
+
+## Modul Monitoring Billing
+
+Migration lanjutan `20260719160000_add_billing_monitoring_foundation.sql` menambahkan fondasi billing yang terhubung ke `surat_penunjukan`, `projects`, `clusters`, dan `app_users`/Supabase Auth yang sudah ada.
+
+Model lama `spk_records`, `master_projects`, JSON timeline tunggal, JSON termin tunggal, dan anonymous CRUD tidak dibawa. Detail desain ada di `BILLING_DATABASE_FOUNDATION.md`.

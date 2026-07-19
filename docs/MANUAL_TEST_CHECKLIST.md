@@ -26,3 +26,15 @@
 - Ubah tanggal ke tahun berbeda dari register: ditolak.
 - Coba update `status_tindak_lanjut` manual lewat browser role: ditolak/diabaikan oleh batas database.
 - Buat Auth user sebelum migration lalu apply baseline: baris `app_users` otomatis tersedia setelah backfill.
+
+## Billing Database Foundation
+
+- Pastikan 9 tabel billing dan view `spk_billing_financial_summary` tersedia.
+- Pastikan seed berisi 5 status, 9 tahapan, 2 template termin, dan 17 item template.
+- Pastikan anonymous tidak dapat membaca tabel billing.
+- Pastikan viewer aktif hanya dapat membaca.
+- Pastikan admin aktif dapat membuat master dan billing record.
+- Buat billing dengan `surat_penunjukan_id`; pembuatan kedua untuk SP yang sama harus ditolak.
+- Pastikan Project dan Cluster billing boleh null dan tidak saling memfilter di level database.
+- Pilih template termin saat membuat billing; stage progress dan termin aktual terbentuk otomatis.
+- Pastikan total termin di atas nilai kontrak ditolak saat transaksi commit.
