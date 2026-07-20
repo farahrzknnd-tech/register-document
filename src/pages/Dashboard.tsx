@@ -13,6 +13,12 @@ import { FilterBar, type FilterOption, Badge } from '../components/FilterBar';
 import { Loading } from '../components/Loading';
 import { formatDate, toDocSummary } from '../lib/utils';
 import { exportToCsv, printDocuments, type ExportRow } from '../lib/export';
+import {
+  getSuratPenunjukanAgendaTitle,
+  getSuratPenunjukanDashboardTitle,
+  matchesDashboardExplorerSelection,
+  type DashboardExplorerSelection,
+} from './dashboardUtils';
 
 interface DashboardProps {
   gambar: Gambar[];
@@ -38,12 +44,7 @@ interface FlatDoc {
 }
 
 // Explorer selection: { kind, clusterName?, type?, subtype? }
-interface ExplorerSel {
-  kind: 'all' | 'cluster' | 'type' | 'subtype';
-  clusterName?: string;
-  type?: DocType;
-  subtype?: string;
-}
+type ExplorerSel = DashboardExplorerSelection;
 
 const docTypeIcons: Record<DocType, typeof FileImage> = {
   gambar: FileImage,
@@ -106,13 +107,16 @@ export function Dashboard({
       link: b.link_drive,
       createdAt: b.created_at,
     }));
-    suratPenunjukan.forEach((sp) => flat.push({
-      summary: toDocSummary('surat_penunjukan', sp),
-      clusterName: sp.cluster?.name || 'Tanpa Cluster',
-      status: 'SP',
-      link: sp.link_risalah,
-      createdAt: sp.created_at,
-    }));
+    suratPenunjukan.forEach((sp) => {
+      const summary = toDocSummary('surat_penunjukan', sp);
+      flat.push({
+        summary: { ...summary, title: getSuratPenunjukanDashboardTitle(sp) },
+        clusterName: sp.cluster?.name || 'Tanpa Cluster',
+        status: 'SP',
+        link: sp.link_risalah,
+        createdAt: sp.created_at,
+      });
+    });
     return flat;
   }, [gambar, surat, beritaAcara, suratPenunjukan]);
 
@@ -146,22 +150,11 @@ export function Dashboard({
   const tableDocs = useMemo(() => {
     let docs = [...allDocs];
 
-    // Explorer selection filter — respects cluster hierarchy
+    // Explorer selection filter — always respects the selected cluster hierarchy.
     if (explorerSel) {
-      if (explorerSel.kind === 'cluster' && explorerSel.clusterName) {
-        docs = docs.filter((d) => d.clusterName === explorerSel.clusterName);
-      } else if (explorerSel.kind === 'type' && explorerSel.type) {
-        docs = docs.filter((d) => d.summary.type === explorerSel.type);
-      } else if (explorerSel.kind === 'subtype' && explorerSel.subtype) {
-        docs = docs.filter((d) => {
-          if (explorerSel.type && d.summary.type !== explorerSel.type) return false;
-          const subtypeMatches =
-            d.summary.subtitle === explorerSel.subtype || d.status === explorerSel.subtype;
-          if (!subtypeMatches) return false;
-          if (explorerSel.clusterName) return d.clusterName === explorerSel.clusterName;
-          return true;
-        });
-      }
+      docs = docs.filter((document) =>
+        matchesDashboardExplorerSelection(document, explorerSel),
+      );
     }
 
     const q = tableSearch.toLowerCase().trim();
@@ -223,7 +216,13 @@ export function Dashboard({
     });
     suratPenunjukan.forEach((sp) => {
       if (sp.tanggal_kickoff) {
-        items.push({ date: sp.tanggal_kickoff, title: `Kick Off Meeting - ${sp.nomor_sp}`, type: 'surat_penunjukan', id: sp.id, kind: 'Kick Off Meeting' });
+        items.push({
+          date: sp.tanggal_kickoff,
+          title: sp.nomor_sp,
+          type: 'surat_penunjukan',
+          id: sp.id,
+          kind: getSuratPenunjukanAgendaTitle(sp),
+        });
       }
     });
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -290,7 +289,10 @@ export function Dashboard({
   const activeFiltersText = useMemo(() => {
     const parts: string[] = [];
     if (explorerSel?.kind === 'cluster') parts.push(`Cluster: ${explorerSel.clusterName}`);
-    if (explorerSel?.kind === 'type') parts.push(`Jenis: ${DOC_TYPE_LABELS[explorerSel.type!]}`);
+    if (explorerSel?.kind === 'type') {
+      if (explorerSel.clusterName) parts.push(`Cluster: ${explorerSel.clusterName}`);
+      parts.push(`Jenis: ${DOC_TYPE_LABELS[explorerSel.type!]}`);
+    }
     if (explorerSel?.kind === 'subtype') {
       if (explorerSel.clusterName) parts.push(`Cluster: ${explorerSel.clusterName}`);
       parts.push(`Sub: ${explorerSel.subtype}`);
