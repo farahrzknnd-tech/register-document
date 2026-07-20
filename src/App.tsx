@@ -25,6 +25,11 @@ type PendingDetail =
   | { type: 'surat_penunjukan'; doc: SuratPenunjukan }
   | null;
 
+type PendingBillingAction =
+  | { type: 'create'; suratPenunjukan: SuratPenunjukan }
+  | { type: 'detail'; billingId: string }
+  | null;
+
 function App() {
   const [page, setPage] = useState<PageId>(() => getInitialPage());
   const [loading, setLoading] = useState(true);
@@ -35,6 +40,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [pendingDetail, setPendingDetail] = useState<PendingDetail>(null);
+  const [pendingBillingAction, setPendingBillingAction] = useState<PendingBillingAction>(null);
   const { user, role, loading: authLoading, error: authError, signOut } = useAuth();
 
   const navigateToPage = useCallback((targetPage: PageId, replace = false) => {
@@ -102,6 +108,22 @@ function App() {
   }, [gambar, surat, beritaAcara, suratPenunjukan, navigateToPage]);
 
   const consumeDetail = useCallback(() => setPendingDetail(null), []);
+
+  const handleCreateBillingFromSuratPenunjukan = useCallback((doc: SuratPenunjukan) => {
+    setPendingBillingAction({ type: 'create', suratPenunjukan: doc });
+    navigateToPage('billing');
+  }, [navigateToPage]);
+
+  const handleOpenBilling = useCallback((billingId: string) => {
+    setPendingBillingAction({ type: 'detail', billingId });
+    navigateToPage('billing');
+  }, [navigateToPage]);
+
+  const consumeBillingAction = useCallback(() => setPendingBillingAction(null), []);
+
+  const handleOpenSuratPenunjukan = useCallback((id: string) => {
+    handleOpenDoc('surat_penunjukan', id);
+  }, [handleOpenDoc]);
 
   const openAddModal = (targetPage: PageId) => {
     if (role !== 'admin') return;
@@ -191,6 +213,8 @@ function App() {
             onOpenDoc={handleOpenDoc}
             initialDetailItem={pendingDetail?.type === 'surat_penunjukan' ? pendingDetail.doc : null}
             onConsumeInitialDetail={consumeDetail}
+            onCreateBilling={handleCreateBillingFromSuratPenunjukan}
+            onOpenBilling={handleOpenBilling}
           />
         )}
         {page === 'billing' && (
@@ -198,6 +222,10 @@ function App() {
             projects={projects}
             clusters={clusters}
             role={role}
+            initialCreateFrom={pendingBillingAction?.type === 'create' ? pendingBillingAction.suratPenunjukan : null}
+            initialDetailBillingId={pendingBillingAction?.type === 'detail' ? pendingBillingAction.billingId : null}
+            onConsumeInitialAction={consumeBillingAction}
+            onOpenSuratPenunjukan={handleOpenSuratPenunjukan}
           />
         )}
         {page === 'master' && role === 'admin' && (

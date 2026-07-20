@@ -8,5 +8,9 @@ describe('error mapping', () => {
     expect(mapAppError(new Error('Cluster not found'))).toMatch(/Cluster tidak ditemukan/i);
     expect(mapAppError(new Error('duplicate key value violates unique constraint'))).toMatch(/duplikat/i);
     expect(mapAppError({ code: 'PGRST202', message: 'Could not find the function public.create_spk_billing' })).toMatch(/migration Patch 3/i);
+    expect(mapAppError({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "spk_billings_surat_penunjukan_unique"',
+    })).toMatch(/sudah memiliki Monitoring Tagihan/i);
   });
 });

@@ -76,3 +76,16 @@
 - Login viewer dan pastikan tombol tambah, edit, dan hapus tidak tersedia.
 - Coba direct insert/update/delete `spk_billings` sebagai authenticated browser role; privilege harus ditolak.
 - Coba akses RPC create/update/delete sebagai viewer; validasi admin internal harus menolak.
+
+## Integrasi Surat Penunjukan — Monitoring Tagihan
+
+- [ ] Admin membuka detail Surat Penunjukan yang belum memiliki billing.
+- [ ] Tombol **Buat Monitoring Tagihan** terlihat.
+- [ ] Form billing terbuka dengan nomor SP, tanggal, kontraktor, pekerjaan, lokasi,
+      project, cluster, tanggal kerja, kickoff, link, dan catatan terisi otomatis.
+- [ ] Nilai Kontrak tidak diisi otomatis dan tetap wajib diisi.
+- [ ] Nama kontraktor yang sama dengan Master Kontraktor memilih master tersebut.
+- [ ] Setelah simpan, detail Surat Penunjukan menampilkan **Lihat Monitoring Tagihan**.
+- [ ] Percobaan membuat billing kedua untuk Surat Penunjukan yang sama ditolak.
+- [ ] Viewer tidak melihat tombol create tetapi dapat membuka billing yang sudah ada.
+- [ ] Detail Monitoring Tagihan dapat membuka Surat Penunjukan sumber.

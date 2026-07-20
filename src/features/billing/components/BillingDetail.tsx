@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock3,
   ExternalLink,
+  FileSignature,
   FileText,
   MapPin,
   Pencil,
@@ -26,6 +27,7 @@ interface BillingDetailProps {
   role: UserRole;
   onClose: () => void;
   onEdit: () => void;
+  onOpenSuratPenunjukan?: (id: string) => void;
 }
 
 function Value({ label, value }: { label: string; value: string }) {
@@ -68,6 +70,7 @@ export function BillingDetail({
   role,
   onClose,
   onEdit,
+  onOpenSuratPenunjukan,
 }: BillingDetailProps) {
   return (
     <Modal
@@ -131,6 +134,19 @@ export function BillingDetail({
               <Value label="Bobot Tahapan" value={billing.stage_weight ?? '-'} />
               <Value label="Template Termin" value={billing.termin_template?.name ?? '-'} />
             </div>
+            {billing.surat_penunjukan && onOpenSuratPenunjukan && (
+              <button
+                type="button"
+                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700"
+                onClick={() => {
+                  onClose();
+                  onOpenSuratPenunjukan(billing.surat_penunjukan!.id);
+                }}
+              >
+                <FileSignature className="h-4 w-4" />
+                Lihat Surat Penunjukan {billing.surat_penunjukan.register_no || billing.surat_penunjukan.nomor_sp}
+              </button>
+            )}
             {billing.document_drive_url && (
               <a
                 href={billing.document_drive_url}

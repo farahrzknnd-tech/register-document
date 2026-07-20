@@ -14,6 +14,8 @@ import { formatRupiah, sanitizeContractValueInput, validateSpkBillingInput } fro
 interface BillingFormProps {
   open: boolean;
   editing: SpkBillingListItem | null;
+  initialInput?: SpkBillingInput | null;
+  sourceLabel?: string | null;
   projects: Project[];
   clusters: Cluster[];
   contractors: Contractor[];
@@ -45,11 +47,19 @@ const emptyInput: SpkBillingInput = {
   notes: '',
 };
 
-function toInput(editing: SpkBillingListItem | null, statuses: BillingStatus[]): SpkBillingInput {
+function toInput(
+  editing: SpkBillingListItem | null,
+  statuses: BillingStatus[],
+  initialInput?: SpkBillingInput | null,
+): SpkBillingInput {
   if (!editing) {
     const defaultStatus = statuses.find((status) => status.code === 'open' && status.active)
       ?? statuses.find((status) => status.active);
-    return { ...emptyInput, billing_status_id: defaultStatus?.id ?? '' };
+    return {
+      ...emptyInput,
+      ...(initialInput ?? {}),
+      billing_status_id: initialInput?.billing_status_id || defaultStatus?.id || '',
+    };
   }
 
   return {
@@ -77,6 +87,8 @@ function toInput(editing: SpkBillingListItem | null, statuses: BillingStatus[]):
 export function BillingForm({
   open,
   editing,
+  initialInput,
+  sourceLabel,
   projects,
   clusters,
   contractors,
@@ -92,11 +104,11 @@ export function BillingForm({
 
   useEffect(() => {
     if (!open) return;
-    const nextForm = toInput(editing, statuses);
+    const nextForm = toInput(editing, statuses, initialInput);
     setForm(nextForm);
-    setContractValueInput(editing ? String(nextForm.contract_value) : '');
+    setContractValueInput(nextForm.contract_value > 0 ? String(nextForm.contract_value) : '');
     setErrors({});
-  }, [editing, open, statuses]);
+  }, [editing, initialInput, open, statuses]);
 
   const activeStatuses = useMemo(
     () => statuses.filter((status) => status.active || status.id === editing?.billing_status_id),
@@ -150,6 +162,14 @@ export function BillingForm({
       }
     >
       <div className="space-y-6">
+        {!editing && initialInput?.surat_penunjukan_id && (
+          <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
+            <p className="text-sm font-semibold text-brand-800">Monitoring dibuat dari Surat Penunjukan</p>
+            <p className="mt-1 text-xs text-brand-700">
+              Data awal{sourceLabel ? ` ${sourceLabel}` : ''} sudah disalin. Periksa kembali dan isi Nilai Kontrak sebelum menyimpan.
+            </p>
+          </div>
+        )}
         <section>
           <h3 className="mb-3 text-sm font-bold text-gray-900">Identitas SPK</h3>
           <div className="grid gap-4 md:grid-cols-2">

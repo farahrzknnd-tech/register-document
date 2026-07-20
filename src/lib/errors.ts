@@ -39,6 +39,10 @@ export function mapAppError(error: unknown): string {
   if (/Contractor not found/i.test(message)) return 'Kontraktor tidak ditemukan.';
   if (/Surat Penunjukan not found/i.test(message)) return 'Surat Penunjukan tidak ditemukan.';
   if (/Billing termin template not found/i.test(message)) return 'Template termin tidak ditemukan.';
+  if (/spk_billings_surat_penunjukan_unique|Surat Penunjukan.*already.*billing/i.test(message)) {
+    return 'Surat Penunjukan ini sudah memiliki Monitoring Tagihan.';
+  }
+  if (/spk_billings_spk_number_lower_key/i.test(message)) return 'Nomor SPK sudah digunakan pada Monitoring Tagihan lain.';
   if (/requires at least one active item/i.test(message)) return 'Template termin harus memiliki minimal satu item aktif.';
   if (/contains invalid items/i.test(message)) return 'Item template termin belum valid.';
   if (/item sequence must be unique/i.test(message)) return 'Urutan item termin tidak boleh duplikat.';

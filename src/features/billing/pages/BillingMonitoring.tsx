@@ -16,7 +16,7 @@ import { ConfirmDialog } from '../../../components/ConfirmDialog';
 import { EmptyState, TableActions } from '../../../components/shared';
 import { useToast } from '../../../components/Toast';
 import { mapAppError } from '../../../lib/errors';
-import type { Cluster, Project, UserRole } from '../../../lib/types';
+import type { Cluster, Project, SuratPenunjukan, UserRole } from '../../../lib/types';
 import { formatDate } from '../../../lib/utils';
 import {
   createSpkBilling,
@@ -47,11 +47,16 @@ import {
   filterSpkBillings,
   formatRupiah,
 } from '../utils/monitoring';
+import { buildBillingInputFromSuratPenunjukan } from '../utils/suratPenunjukanIntegration';
 
 interface BillingMonitoringProps {
   projects: Project[];
   clusters: Cluster[];
   role: UserRole;
+  initialCreateFrom?: SuratPenunjukan | null;
+  initialDetailBillingId?: string | null;
+  onConsumeInitialAction?: () => void;
+  onOpenSuratPenunjukan?: (id: string) => void;
 }
 
 const initialFilters: BillingFilterState = {
@@ -65,7 +70,15 @@ const initialFilters: BillingFilterState = {
 
 const PAGE_SIZE = 10;
 
-export function BillingMonitoring({ projects, clusters, role }: BillingMonitoringProps) {
+export function BillingMonitoring({
+  projects,
+  clusters,
+  role,
+  initialCreateFrom,
+  initialDetailBillingId,
+  onConsumeInitialAction,
+  onOpenSuratPenunjukan,
+}: BillingMonitoringProps) {
   const toast = useToast();
   const [billings, setBillings] = useState<SpkBillingListItem[]>([]);
   const [contractors, setContractors] = useState<Contractor[]>([]);
@@ -77,6 +90,8 @@ export function BillingMonitoring({ projects, clusters, role }: BillingMonitorin
   const [currentPage, setCurrentPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SpkBillingListItem | null>(null);
+  const [initialInput, setInitialInput] = useState<SpkBillingInput | null>(null);
+  const [sourceLabel, setSourceLabel] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<SpkBillingListItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -124,15 +139,19 @@ export function BillingMonitoring({ projects, clusters, role }: BillingMonitorin
 
   const openCreate = () => {
     setEditing(null);
+    setInitialInput(null);
+    setSourceLabel(null);
     setFormOpen(true);
   };
 
   const openEdit = (billing: SpkBillingListItem) => {
+    setInitialInput(null);
+    setSourceLabel(null);
     setEditing(billing);
     setFormOpen(true);
   };
 
-  const openDetail = async (billing: SpkBillingListItem) => {
+  const openDetail = useCallback(async (billing: SpkBillingListItem) => {
     setDetailBase(billing);
     setDetail(null);
     setDetailError(null);
@@ -145,7 +164,55 @@ export function BillingMonitoring({ projects, clusters, role }: BillingMonitorin
     } finally {
       setDetailLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (initialDetailBillingId) {
+      onConsumeInitialAction?.();
+      const existing = billings.find((billing) => billing.id === initialDetailBillingId);
+      if (existing) {
+        void openDetail(existing);
+      } else {
+        toast.show('Monitoring tagihan yang terhubung tidak ditemukan.', 'warning');
+      }
+      return;
+    }
+
+    if (!initialCreateFrom) return;
+
+    onConsumeInitialAction?.();
+    const existing = billings.find(
+      (billing) => billing.surat_penunjukan_id === initialCreateFrom.id,
+    );
+
+    if (existing) {
+      toast.show('Surat Penunjukan ini sudah memiliki Monitoring Tagihan.', 'info');
+      void openDetail(existing);
+      return;
+    }
+
+    if (role !== 'admin') {
+      toast.show('Akses admin diperlukan untuk membuat Monitoring Tagihan.', 'warning');
+      return;
+    }
+
+    setEditing(null);
+    setInitialInput(buildBillingInputFromSuratPenunjukan(initialCreateFrom, contractors));
+    setSourceLabel(initialCreateFrom.register_no || initialCreateFrom.nomor_sp);
+    setFormOpen(true);
+  }, [
+    billings,
+    contractors,
+    initialCreateFrom,
+    initialDetailBillingId,
+    loading,
+    onConsumeInitialAction,
+    openDetail,
+    role,
+    toast,
+  ]);
 
   const handleSubmit = async (input: SpkBillingInput) => {
     setSubmitting(true);
@@ -159,6 +226,8 @@ export function BillingMonitoring({ projects, clusters, role }: BillingMonitorin
       }
       setFormOpen(false);
       setEditing(null);
+      setInitialInput(null);
+      setSourceLabel(null);
       await load();
     } catch (submitError) {
       toast.show(mapAppError(submitError), 'error');
@@ -347,13 +416,22 @@ export function BillingMonitoring({ projects, clusters, role }: BillingMonitorin
       <BillingForm
         open={formOpen}
         editing={editing}
+        initialInput={initialInput}
+        sourceLabel={sourceLabel}
         projects={projects}
         clusters={clusters}
         contractors={contractors}
         statuses={statuses}
         templates={templates}
         submitting={submitting}
-        onClose={() => { if (!submitting) { setFormOpen(false); setEditing(null); } }}
+        onClose={() => {
+          if (!submitting) {
+            setFormOpen(false);
+            setEditing(null);
+            setInitialInput(null);
+            setSourceLabel(null);
+          }
+        }}
         onSubmit={handleSubmit}
       />
 
@@ -365,6 +443,7 @@ export function BillingMonitoring({ projects, clusters, role }: BillingMonitorin
         role={role}
         onClose={() => setDetailOpen(false)}
         onEdit={handleEditFromDetail}
+        onOpenSuratPenunjukan={onOpenSuratPenunjukan}
       />
 
       <ConfirmDialog

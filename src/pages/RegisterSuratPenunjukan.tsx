@@ -1,11 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Plus, FileSignature, ArrowLeft, ArrowLeftCircle, ArrowRightCircle } from 'lucide-react';
+import { Plus, FileSignature, ArrowLeft, ArrowLeftCircle, ArrowRightCircle, ReceiptText, RefreshCw } from 'lucide-react';
 import type { SuratPenunjukan, Gambar, Surat, BeritaAcara, DocType, DocumentSummary, UserRole, Project, Cluster } from '../lib/types';
 import {
   createSuratPenunjukan, updateSuratPenunjukan, deleteSuratPenunjukan,
   fetchDocRefs, fetchDocReferrers,
   type SuratPenunjukanInput, type DocRefInput,
 } from '../lib/api';
+import {
+  fetchBillingLinkForSuratPenunjukan,
+  type SuratPenunjukanBillingLink,
+} from '../features/billing/api/billings';
 import { useToast } from '../components/Toast';
 import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -19,6 +23,7 @@ import { DetailField, EmptyState, TableActions } from '../components/shared';
 import { DriveButtons, DetailActions } from '../components/DetailActions';
 import { printDetail } from '../lib/export';
 import { formatDate, calcDurasi, buildAllDocSummaries, findDoc, toDocSummary } from '../lib/utils';
+import { mapAppError } from '../lib/errors';
 
 interface SuratPenunjukanPageProps {
   suratPenunjukan: SuratPenunjukan[];
@@ -33,6 +38,8 @@ interface SuratPenunjukanPageProps {
   onOpenDoc?: (type: DocType, id: string) => void;
   initialDetailItem?: SuratPenunjukan | null;
   onConsumeInitialDetail?: () => void;
+  onCreateBilling?: (suratPenunjukan: SuratPenunjukan) => void;
+  onOpenBilling?: (billingId: string) => void;
 }
 
 interface SPFormState extends SuratPenunjukanInput {
@@ -49,7 +56,7 @@ const emptyForm: SPFormState = {
   _refs: [],
 };
 
-export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, beritaAcara, clusters, projects, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail }: SuratPenunjukanPageProps) {
+export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, beritaAcara, clusters, projects, loading, role, onRefresh, onOpenDoc, initialDetailItem, onConsumeInitialDetail, onCreateBilling, onOpenBilling }: SuratPenunjukanPageProps) {
   const isAdmin = role === 'admin';
   const toast = useToast();
   const [search, setSearch] = useState('');
@@ -66,6 +73,9 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
   const [detailPrevDocs, setDetailPrevDocs] = useState<DocumentSummary[]>([]);
   const [detailNextDocs, setDetailNextDocs] = useState<DocumentSummary[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [billingLink, setBillingLink] = useState<SuratPenunjukanBillingLink | null>(null);
+  const [billingLinkLoading, setBillingLinkLoading] = useState(false);
+  const [billingLinkError, setBillingLinkError] = useState<string | null>(null);
 
   const allDocs = useMemo(() => buildAllDocSummaries(gambar, surat, suratPenunjukan, beritaAcara), [gambar, surat, suratPenunjukan, beritaAcara]);
 
@@ -128,10 +138,24 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
     setModalOpen(true);
   };
 
+  const loadBillingLink = async (suratPenunjukanId: string) => {
+    setBillingLink(null);
+    setBillingLinkError(null);
+    setBillingLinkLoading(true);
+    try {
+      setBillingLink(await fetchBillingLinkForSuratPenunjukan(suratPenunjukanId));
+    } catch (error) {
+      setBillingLinkError(mapAppError(error));
+    } finally {
+      setBillingLinkLoading(false);
+    }
+  };
+
   const openDetail = async (s: SuratPenunjukan) => {
     setDetailItem(s);
     setDetailPrevDocs([]);
     setDetailNextDocs([]);
+    void loadBillingLink(s.id);
     try {
       const [refs, referrers] = await Promise.all([
         fetchDocRefs('surat_penunjukan', s.id),
@@ -243,6 +267,44 @@ export function RegisterSuratPenunjukan({ suratPenunjukan, gambar, surat, berita
             emptyMessage="Belum ada dokumen yang menggunakan surat penunjukan ini sebagai referensi."
             onOpenDoc={(type, id) => onOpenDoc?.(type, id)}
           />
+
+          <section className="border-t border-gray-200 px-6 py-5">
+            <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-blue-100 p-2 text-blue-700">
+                  <ReceiptText className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">Monitoring Tagihan</p>
+                  {billingLinkLoading && <p className="mt-1 text-xs text-gray-500">Memeriksa relasi monitoring...</p>}
+                  {!billingLinkLoading && billingLink && (
+                    <p className="mt-1 text-xs text-gray-600">Terhubung ke {billingLink.spk_number}.</p>
+                  )}
+                  {!billingLinkLoading && !billingLink && !billingLinkError && (
+                    <p className="mt-1 text-xs text-gray-600">Belum ada monitoring tagihan untuk Surat Penunjukan ini.</p>
+                  )}
+                  {billingLinkError && <p className="mt-1 text-xs text-red-600">{billingLinkError}</p>}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {billingLinkError && (
+                  <button className="btn-secondary" onClick={() => void loadBillingLink(s.id)}>
+                    <RefreshCw className="h-4 w-4" /> Coba Lagi
+                  </button>
+                )}
+                {!billingLinkLoading && billingLink && onOpenBilling && (
+                  <button className="btn-primary" onClick={() => onOpenBilling(billingLink.id)}>
+                    <ReceiptText className="h-4 w-4" /> Lihat Monitoring Tagihan
+                  </button>
+                )}
+                {!billingLinkLoading && !billingLink && !billingLinkError && isAdmin && onCreateBilling && (
+                  <button className="btn-primary" onClick={() => onCreateBilling(s)}>
+                    <Plus className="h-4 w-4" /> Buat Monitoring Tagihan
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
 
           <DetailActions
             isAdmin={isAdmin}

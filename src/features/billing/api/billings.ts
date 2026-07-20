@@ -15,6 +15,13 @@ import { normalizeNullable, resolveCurrentBillingStage } from '../utils/monitori
 
 type SpkBillingRow = Database['public']['Tables']['spk_billings']['Row'];
 
+export interface SuratPenunjukanBillingLink {
+  id: string;
+  surat_penunjukan_id: string;
+  spk_number: string;
+  billing_status_id: string;
+}
+
 const BILLING_SELECT = `
   *,
   project:projects(id,name,code),
@@ -24,6 +31,26 @@ const BILLING_SELECT = `
   surat_penunjukan:surat_penunjukan(id,register_no,nomor_sp,tanggal_sp),
   termin_template:billing_termin_templates(id,code,name,active)
 `;
+
+export async function fetchBillingLinkForSuratPenunjukan(
+  suratPenunjukanId: string,
+): Promise<SuratPenunjukanBillingLink | null> {
+  const { data, error } = await supabase
+    .from('spk_billings')
+    .select('id,surat_penunjukan_id,spk_number,billing_status_id')
+    .eq('surat_penunjukan_id', suratPenunjukanId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.surat_penunjukan_id) return null;
+
+  return {
+    id: data.id,
+    surat_penunjukan_id: data.surat_penunjukan_id,
+    spk_number: data.spk_number,
+    billing_status_id: data.billing_status_id,
+  };
+}
 
 function emptyFinancial(billing: SpkBilling): SpkBillingFinancialSummary {
   return {
