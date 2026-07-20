@@ -1,13 +1,10 @@
 import { useMemo, useState } from 'react';
 import { FileSpreadsheet, FileText, Printer, BarChart3, FileImage, Mail } from 'lucide-react';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import type { Gambar, Surat, Cluster } from '../lib/types';
 import { JENIS_GAMBAR_LIST, JENIS_SURAT_LIST } from '../lib/types';
 import { FilterBar, type FilterOption } from '../components/FilterBar';
 import { Loading } from '../components/Loading';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/toastContext';
 
 interface LaporanProps {
   gambar: Gambar[];
@@ -65,8 +62,9 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
     return parts.length ? parts.join(' - ') : 'Semua Data';
   };
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
     try {
+      const XLSX = await import('xlsx');
       const wb = XLSX.utils.book_new();
       const recapData = [
         ['LAPORAN REGISTER GAMBAR & SURAT PROYEK'],
@@ -109,8 +107,12 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
     } catch (err: unknown) { toast.show('Gagal export Excel: ' + (err instanceof Error ? err.message : String(err)), 'error'); }
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ]);
       const doc = new jsPDF('portrait', 'mm', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -157,8 +159,8 @@ export function Laporan({ gambar, surat, clusters, loading }: LaporanProps) {
           ]} onClear={clearFilters} />
         </div>
         <div className="flex flex-wrap gap-3">
-          <button className="btn-primary" onClick={exportExcel}><FileSpreadsheet className="h-4 w-4" /> Export Excel</button>
-          <button className="btn-secondary" onClick={exportPDF}><FileText className="h-4 w-4" /> Export PDF</button>
+          <button className="btn-primary" onClick={() => void exportExcel()}><FileSpreadsheet className="h-4 w-4" /> Export Excel</button>
+          <button className="btn-secondary" onClick={() => void exportPDF()}><FileText className="h-4 w-4" /> Export PDF</button>
           <button className="btn-secondary" onClick={() => window.print()}><Printer className="h-4 w-4" /> Print</button>
         </div>
       </div>

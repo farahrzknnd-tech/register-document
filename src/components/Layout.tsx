@@ -10,14 +10,18 @@ import {
   Building2,
   FileSignature,
   FileCheck,
+  ReceiptText,
+  FileSpreadsheet,
+  FileUp,
   Shield,
   Eye,
 } from 'lucide-react';
 import type { UserRole } from '../lib/types';
+import type { PageId } from '../lib/pageNavigation';
 import { ROLE_LABELS } from '../lib/types';
 import { Footer } from './Footer';
 
-export type PageId = 'dashboard' | 'gambar' | 'surat' | 'beritaAcara' | 'suratPenunjukan' | 'master' | 'laporan';
+export type { PageId } from '../lib/pageNavigation';
 
 interface LayoutProps {
   current: PageId;
@@ -34,6 +38,10 @@ const allMenuItems: { id: PageId; label: string; icon: typeof LayoutDashboard; a
   { id: 'surat', label: 'Register Surat', icon: Mail },
   { id: 'beritaAcara', label: 'Register Berita Acara', icon: FileCheck },
   { id: 'suratPenunjukan', label: 'Register Surat Penunjukan', icon: FileSignature },
+  { id: 'billingDashboard', label: 'Dashboard Tagihan', icon: BarChart3 },
+  { id: 'billing', label: 'Monitoring Tagihan', icon: ReceiptText },
+  { id: 'billingReports', label: 'Laporan Tagihan', icon: FileSpreadsheet },
+  { id: 'billingImport', label: 'Import Data Legacy', icon: FileUp, adminOnly: true },
   { id: 'master', label: 'Master Data', icon: Database, adminOnly: true },
   { id: 'laporan', label: 'Laporan', icon: BarChart3 },
 ];
@@ -67,8 +75,8 @@ export function Layout({ current, onNavigate, role, email, onLogout, children }:
             <Building2 className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-bold text-gray-900">Register Dokumen</h1>
-            <p className="truncate text-xs text-gray-500">Proyek Admin</p>
+            <h1 className="truncate text-sm font-bold text-gray-900">Admin Management System</h1>
+            <p className="truncate text-xs text-gray-500">Document & Billing Operations</p>
           </div>
         </div>
 
@@ -120,7 +128,7 @@ export function Layout({ current, onNavigate, role, email, onLogout, children }:
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
               <Building2 className="h-4 w-4" />
             </div>
-            <span className="text-sm font-bold text-gray-900">Register Dokumen</span>
+            <span className="text-sm font-bold text-gray-900">Admin Management System</span>
           </div>
         </header>
 

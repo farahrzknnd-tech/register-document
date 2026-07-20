@@ -1,8 +1,8 @@
-# Setup Supabase Register Document
+# Setup Supabase Admin Management System
 
 ## 1. Project Supabase
 
-Buat atau pilih Supabase project khusus Register Document. Jangan gunakan project Disposal Management.
+Buat atau pilih Supabase project khusus Admin Management System. Jangan gunakan project Disposal Management.
 
 ## 2. Ambil URL dan key
 
@@ -89,3 +89,18 @@ Service-role key memberi akses penuh dan melewati RLS. Jangan pernah expose di `
 ## Remediasi 1.1
 
 Baseline juga menjalankan backfill dari `auth.users` ke `public.app_users`, sehingga user yang sudah dibuat sebelum migration tetap mendapat role default `viewer`.
+
+## Validasi Billing Foundation
+
+Setelah menarik patch Billing Foundation, jalankan ulang local database dan tipe:
+
+```bash
+npm run supabase:start
+npm run db:reset
+npm run db:test
+npm run db:lint
+npm run db:types
+npm run check
+```
+
+Pastikan migration list menampilkan `20260719160000_add_billing_monitoring_foundation.sql`. Jangan menjalankan `db push` remote sebelum semua pemeriksaan lokal berhasil.

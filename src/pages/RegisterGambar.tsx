@@ -8,7 +8,7 @@ import {
   createGambar, updateGambar, deleteGambar,
   fetchDocRefs, fetchDocReferrers, type GambarInput, type DocRefInput,
 } from '../lib/api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/toastContext';
 import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { SearchBar } from '../components/SearchBar';

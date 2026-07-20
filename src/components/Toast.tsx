@@ -1,23 +1,11 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { ToastContext, type ToastType } from './toastContext';
 
-type ToastType = 'success' | 'error' | 'warning' | 'info';
 interface Toast {
   id: number;
   type: ToastType;
   message: string;
-}
-
-interface ToastContextValue {
-  show: (message: string, type?: ToastType) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null);
-
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within ToastProvider');
-  return ctx;
 }
 
 const icons = {
@@ -53,9 +41,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const remove = (id: number) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const value = useMemo(() => ({ show }), [show]);
 
   return (
-    <ToastContext.Provider value={{ show }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => {

@@ -26,3 +26,142 @@
 - Ubah tanggal ke tahun berbeda dari register: ditolak.
 - Coba update `status_tindak_lanjut` manual lewat browser role: ditolak/diabaikan oleh batas database.
 - Buat Auth user sebelum migration lalu apply baseline: baris `app_users` otomatis tersedia setelah backfill.
+
+## Billing Database Foundation
+
+- Pastikan 9 tabel billing dan view `spk_billing_financial_summary` tersedia.
+- Pastikan seed berisi 5 status, 9 tahapan, 2 template termin, dan 17 item template.
+- Pastikan anonymous tidak dapat membaca tabel billing.
+- Pastikan viewer aktif hanya dapat membaca.
+- Pastikan admin aktif dapat membuat master dan billing record.
+- Buat billing dengan `surat_penunjukan_id`; pembuatan kedua untuk SP yang sama harus ditolak.
+- Pastikan Project dan Cluster billing boleh null dan tidak saling memfilter di level database.
+- Pilih template termin saat membuat billing; stage progress dan termin aktual terbentuk otomatis.
+- Pastikan total termin di atas nilai kontrak ditolak saat transaksi commit.
+
+## Billing Master Data
+
+- Login admin dan pastikan 6 tab Master Data tampil.
+- Tambah kontraktor lengkap dengan PIC, telepon, email, alamat, dan status aktif.
+- Edit kontraktor dan pastikan perubahan tampil setelah refresh data.
+- Coba membuat kontraktor dengan nama duplikat; simpan harus ditolak dengan pesan jelas.
+- Tambah Status Billing dengan kode, warna, urutan, terminal, dan status aktif.
+- Edit seed status tanpa mengubah data billing yang sudah ada.
+- Tambah Tahapan Approval dan pastikan urutan tabel sesuai `sort_order`.
+- Nonaktifkan tahapan dan pastikan tahapan tidak ikut dibuat pada billing baru.
+- Tambah Template Termin dengan beberapa item.
+- Geser urutan item menggunakan tombol naik/turun dan simpan.
+- Coba simpan template tanpa item aktif; simpan harus ditolak.
+- Coba nama item duplikat; simpan harus ditolak.
+- Coba total persentase aktif lebih dari 100%; simpan harus ditolak.
+- Edit template dan pastikan header serta item berubah bersama.
+- Coba hapus master yang sudah dipakai billing; penghapusan harus ditolak.
+- Login viewer dan pastikan menu Master Data tidak tersedia serta mutation langsung ditolak RLS.
+
+
+## Billing Monitoring Core
+
+- Login admin dan pastikan menu `Monitoring Tagihan` tampil.
+- Tambah monitoring dengan nomor SPK, status, kontraktor, pekerjaan, dan nilai kontrak.
+- Simpan monitoring tanpa Project dan Cluster; penyimpanan harus berhasil.
+- Simpan Project dan Cluster yang berbeda ownership master; penyimpanan harus berhasil.
+- Pilih Template Termin saat create dan pastikan detail menampilkan termin hasil inisialisasi.
+- Edit data inti dan pastikan activity log menampilkan aktivitas update.
+- Pastikan Template Termin tidak dapat diganti dari form edit Patch 3.
+- Cari berdasarkan nomor SPK, kontraktor, pekerjaan, project, atau cluster.
+- Uji filter Status, Project, Cluster, dan Kontraktor secara independen.
+- Uji sorting terbaru, terlama, nomor SPK, dan nilai kontrak terbesar.
+- Buka detail dan verifikasi ringkasan kontrak, tagihan, pembayaran, timeline, dan termin.
+- Hapus monitoring dan pastikan stage, termin, serta activity terkait ikut terhapus.
+- Login viewer dan pastikan tombol tambah, edit, dan hapus tidak tersedia.
+- Coba direct insert/update/delete `spk_billings` sebagai authenticated browser role; privilege harus ditolak.
+- Coba akses RPC create/update/delete sebagai viewer; validasi admin internal harus menolak.
+
+## Integrasi Surat Penunjukan — Monitoring Tagihan
+
+- [ ] Admin membuka detail Surat Penunjukan yang belum memiliki billing.
+- [ ] Tombol **Buat Monitoring Tagihan** terlihat.
+- [ ] Form billing terbuka dengan nomor SP, tanggal, kontraktor, pekerjaan, lokasi,
+      project, cluster, tanggal kerja, kickoff, link, dan catatan terisi otomatis.
+- [ ] Nilai Kontrak tidak diisi otomatis dan tetap wajib diisi.
+- [ ] Nama kontraktor yang sama dengan Master Kontraktor memilih master tersebut.
+- [ ] Setelah simpan, detail Surat Penunjukan menampilkan **Lihat Monitoring Tagihan**.
+- [ ] Percobaan membuat billing kedua untuk Surat Penunjukan yang sama ditolak.
+- [ ] Viewer tidak melihat tombol create tetapi dapat membuka billing yang sudah ada.
+- [ ] Detail Monitoring Tagihan dapat membuka Surat Penunjukan sumber.
+
+## Billing Approval Timeline dan Termin Pembayaran
+
+- [ ] Admin membuka detail Monitoring Tagihan dan melihat tombol edit pada setiap tahapan.
+- [ ] Ubah tahapan menjadi `Sedang Diproses`; perubahan tersimpan dan posisi dokumen pada tabel ikut berubah.
+- [ ] Ubah tahapan menjadi `Selesai`; tanggal/waktu selesai wajib diisi.
+- [ ] Ubah catatan tahapan dan pastikan activity log mencatat `Tahapan approval diperbarui`.
+- [ ] Tambah Master Tahapan Approval baru, lalu klik `Sinkronkan Tahapan` pada monitoring lama.
+- [ ] Viewer tidak melihat tombol edit atau sinkronisasi tahapan.
+- [ ] Admin menambah termin manual tanpa template.
+- [ ] Edit termin hasil template dan pastikan nilai rencana, tagihan, pembayaran, tanggal, serta status tersimpan.
+- [ ] Coba nilai ditagihkan melebihi nilai rencana; simpan harus ditolak.
+- [ ] Coba nilai dibayar melebihi nilai ditagihkan; simpan harus ditolak.
+- [ ] Isi nilai tagihan tanpa tanggal tagihan; simpan harus ditolak.
+- [ ] Isi nilai pembayaran tanpa tanggal pembayaran; simpan harus ditolak.
+- [ ] Coba tanggal pembayaran lebih awal dari tanggal tagihan; simpan harus ditolak.
+- [ ] Ubah status menjadi `Lunas` dengan nilai dibayar tidak sama dengan nilai tagihan; simpan harus ditolak.
+- [ ] Hapus termin tanpa realisasi finansial; penghapusan berhasil.
+- [ ] Hapus termin yang sudah memiliki tagihan/pembayaran; penghapusan ditolak.
+- [ ] Ringkasan total ditagihkan, dibayar, sisa kontrak, dan persentase diperbarui setelah termin disimpan.
+- [ ] Viewer tidak melihat tombol tambah, edit, atau hapus termin.
+- [ ] Direct insert/update/delete ke `billing_stage_progress` dan `billing_termins` sebagai browser role ditolak.
+
+## Billing Dashboard
+
+- Buka menu `Dashboard Tagihan` dan pastikan URL berubah menjadi `#/billingDashboard`.
+- Refresh browser dan pastikan tetap berada pada Dashboard Tagihan.
+- Pastikan KPI total monitoring, kontraktor, kontrak, tagihan, pembayaran, dan sisa kontrak tampil.
+- Uji filter Project, Cluster, Kontraktor, dan Status secara independen.
+- Pastikan reset filter mengembalikan seluruh data.
+- Pastikan progress finansial sesuai ringkasan pada Monitoring Tagihan.
+- Pastikan breakdown Project, Cluster, Status, dan Tahapan Approval tampil.
+- Pastikan item terlambat, belum dibayar, belum ditagihkan, atau mendekati selesai masuk ke `Perlu Perhatian`.
+- Klik item `Perlu Perhatian` dan pastikan detail Monitoring Tagihan terbuka.
+- Klik `Lihat Monitoring` dan pastikan pindah ke daftar Monitoring Tagihan.
+- Login sebagai viewer dan pastikan dashboard tetap dapat dibaca tanpa kontrol mutasi.
+
+## Billing Reports
+
+- [ ] Buka menu `Laporan Tagihan` dan pastikan URL menjadi `#/billingReports`.
+- [ ] Refresh browser dan pastikan tetap berada di Laporan Tagihan.
+- [ ] Pastikan KPI monitoring, kontrak, rencana, tagihan, pembayaran, sisa, dan outstanding sesuai data.
+- [ ] Uji pencarian nomor SPK, kontraktor, pekerjaan, Project, Cluster, Status, dan Tahapan.
+- [ ] Uji filter Project dan Cluster secara independen.
+- [ ] Uji filter Kontraktor, Status, Tahun, tanggal mulai, dan tanggal selesai.
+- [ ] Klik reset filter dan pastikan semua data kembali.
+- [ ] Buka tab `Detail Monitoring` dan klik nomor SPK; detail Monitoring Tagihan harus terbuka.
+- [ ] Buka tab `Detail Termin` dan pastikan hanya termin dari billing hasil filter yang tampil.
+- [ ] Export Excel dan pastikan tersedia sheet `Rekap`, `Monitoring`, dan `Termin`.
+- [ ] Export PDF dan pastikan ringkasan serta tabel dapat dibaca dalam orientasi landscape.
+- [ ] Print dan pastikan halaman khusus menampilkan ringkasan, detail monitoring, detail termin, dan footer.
+- [ ] Pastikan input teks yang diawali `=`, `+`, `-`, atau `@` tidak menjadi formula aktif di Excel.
+- [ ] Login sebagai viewer dan pastikan laporan, export, print, dan buka detail tetap tersedia tanpa kontrol mutasi.
+- [ ] Pastikan tidak ada migration database baru pada Patch 7.
+
+## Patch 8 — Import Legacy, Hardening, dan Branding
+
+- [ ] Title browser, Login, sidebar desktop, dan header mobile menampilkan `Admin Management System`.
+- [ ] Metadata Bolt dan favicon Vite tidak lagi ada pada `index.html`.
+- [ ] Buka `Import Data Legacy` sebagai admin dan pastikan URL menjadi `#/billingImport`.
+- [ ] Refresh browser dan pastikan tetap berada di halaman import.
+- [ ] Viewer tidak melihat menu Import Data Legacy.
+- [ ] Unggah JSON invalid; aplikasi menolak dengan pesan jelas.
+- [ ] Unggah file tanpa `spkRecords`; aplikasi menolak.
+- [ ] Unggah backup valid lalu klik Validasi Import; belum ada data yang ditulis.
+- [ ] Preview menampilkan total, importable, duplicate, invalid, dan unresolved scope.
+- [ ] Import record baru dan pastikan Monitoring Tagihan bertambah.
+- [ ] Import file yang sama kedua kali dan pastikan SPK duplikat dilewati.
+- [ ] Project/Cluster tidak ditemukan menghasilkan warning dan billing tetap diimpor dengan nilai null.
+- [ ] Kontraktor/status/template yang belum ada dibuat saat import aktual.
+- [ ] Tahapan approval dan termin legacy tampil pada detail monitoring hasil import.
+- [ ] Total tagihan legacy dipertahankan, termasuk termin penyesuaian bila diperlukan.
+- [ ] Riwayat import tampil dan tidak dapat dimutasi langsung oleh browser role.
+- [ ] Simulasikan backend gagal saat initial load; aplikasi menampilkan error screen, Retry, dan Logout.
+- [ ] Jalankan ESLint dan pastikan tidak ada Fast Refresh warning dari Auth/Toast.
+- [ ] Pastikan file `supabase/.temp` tidak ikut Git.

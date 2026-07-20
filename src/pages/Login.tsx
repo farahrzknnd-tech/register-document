@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useAuth } from '../lib/auth';
+import { useAuth } from '../lib/authContext';
 import { mapAppError } from '../lib/errors';
 
 export function Login() {
@@ -21,8 +21,8 @@ export function Login() {
 
   return <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
     <form onSubmit={submit} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-      <h1 className="mb-1 text-xl font-bold text-gray-900">Register Dokumen</h1>
-      <p className="mb-6 text-sm text-gray-500">Masuk dengan akun Supabase Auth.</p>
+      <h1 className="mb-1 text-xl font-bold text-gray-900">Admin Management System</h1>
+      <p className="mb-6 text-sm text-gray-500">Kelola dokumen proyek dan monitoring tagihan dalam satu sistem.</p>
       <label htmlFor="email" className="mb-1 block text-sm font-semibold text-gray-700">Email</label>
       <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2" autoComplete="email" />
       <label htmlFor="password" className="mb-1 block text-sm font-semibold text-gray-700">Password</label>
