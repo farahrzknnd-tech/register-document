@@ -3,8 +3,10 @@ import type { Database } from '../../../lib/database.types';
 import type {
   BillingActivityLog,
   BillingStageProgressDetail,
+  BillingStageProgressInput,
   BillingStatus,
   BillingTermin,
+  BillingTerminInput,
   SpkBilling,
   SpkBillingDetail,
   SpkBillingFinancialSummary,
@@ -14,6 +16,8 @@ import type {
 import { normalizeNullable, resolveCurrentBillingStage } from '../utils/monitoring';
 
 type SpkBillingRow = Database['public']['Tables']['spk_billings']['Row'];
+type BillingStageProgressRow = Database['public']['Tables']['billing_stage_progress']['Row'];
+type BillingTerminRow = Database['public']['Tables']['billing_termins']['Row'];
 
 export interface SuratPenunjukanBillingLink {
   id: string;
@@ -334,5 +338,97 @@ export async function updateSpkBilling(
 
 export async function deleteSpkBilling(id: string): Promise<void> {
   const { error } = await supabase.rpc('delete_spk_billing', { p_billing_id: id });
+  if (error) throw error;
+}
+
+
+type UpdateBillingStageArgs = {
+  p_progress_id: string;
+  p_status: BillingStageProgressInput['status'];
+  p_completed_at: string | null;
+  p_note: string | null;
+};
+
+type SaveBillingTerminArgs = {
+  p_billing_id: string;
+  p_sequence_no: number;
+  p_name: string;
+  p_planned_amount: number;
+  p_billed_amount: number;
+  p_paid_amount: number;
+  p_status: BillingTerminInput['status'];
+  p_termin_id: string | null;
+  p_percentage: number | null;
+  p_billed_date: string | null;
+  p_paid_date: string | null;
+  p_notes: string | null;
+};
+
+interface BillingWorkflowRpc {
+  (
+    functionName: 'update_billing_stage_progress',
+    args: UpdateBillingStageArgs,
+  ): PromiseLike<{ data: BillingStageProgressRow | null; error: unknown | null }>;
+  (
+    functionName: 'sync_billing_stage_progress',
+    args: { p_billing_id: string },
+  ): PromiseLike<{ data: BillingStageProgressRow[] | null; error: unknown | null }>;
+  (
+    functionName: 'save_billing_termin',
+    args: SaveBillingTerminArgs,
+  ): PromiseLike<{ data: BillingTerminRow | null; error: unknown | null }>;
+  (
+    functionName: 'delete_billing_termin',
+    args: { p_termin_id: string },
+  ): PromiseLike<{ data: BillingTerminRow | null; error: unknown | null }>;
+}
+
+const billingWorkflowRpc = supabase.rpc.bind(supabase) as unknown as BillingWorkflowRpc;
+
+export async function updateBillingStageProgress(
+  input: BillingStageProgressInput,
+): Promise<BillingStageProgressRow> {
+  const { data, error } = await billingWorkflowRpc('update_billing_stage_progress', {
+    p_progress_id: input.progress_id,
+    p_status: input.status,
+    p_completed_at: input.completed_at,
+    p_note: normalizeNullable(input.note),
+  });
+  if (error) throw error;
+  if (!data) throw new Error('Billing stage progress not found');
+  return data;
+}
+
+export async function syncBillingStageProgress(billingId: string): Promise<void> {
+  const { error } = await billingWorkflowRpc('sync_billing_stage_progress', {
+    p_billing_id: billingId,
+  });
+  if (error) throw error;
+}
+
+export async function saveBillingTermin(input: BillingTerminInput): Promise<BillingTerminRow> {
+  const { data, error } = await billingWorkflowRpc('save_billing_termin', {
+    p_billing_id: input.billing_id,
+    p_sequence_no: input.sequence_no,
+    p_name: input.name.trim(),
+    p_planned_amount: input.planned_amount,
+    p_billed_amount: input.billed_amount,
+    p_paid_amount: input.paid_amount,
+    p_status: input.status,
+    p_termin_id: input.termin_id,
+    p_percentage: input.percentage,
+    p_billed_date: input.billed_date,
+    p_paid_date: input.paid_date,
+    p_notes: normalizeNullable(input.notes),
+  });
+  if (error) throw error;
+  if (!data) throw new Error('Billing termin not found');
+  return data;
+}
+
+export async function deleteBillingTermin(id: string): Promise<void> {
+  const { error } = await billingWorkflowRpc('delete_billing_termin', {
+    p_termin_id: id,
+  });
   if (error) throw error;
 }

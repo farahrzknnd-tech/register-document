@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   Circle,
@@ -8,16 +9,26 @@ import {
   FileText,
   MapPin,
   Pencil,
+  Plus,
+  RefreshCw,
   ReceiptText,
+  Trash2,
   UserRound,
   Wallet,
 } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { formatDate } from '../../../lib/utils';
 import type { UserRole } from '../../../lib/types';
-import type { SpkBillingDetail } from '../types';
+import type {
+  BillingStageProgressInput,
+  BillingTermin,
+  BillingTerminInput,
+  SpkBillingDetail,
+} from '../types';
 import { formatRupiah } from '../utils/monitoring';
+import { BillingStageEditor } from './BillingStageEditor';
 import { BillingStatusBadge } from './BillingStatusBadge';
+import { BillingTerminEditor } from './BillingTerminEditor';
 
 interface BillingDetailProps {
   open: boolean;
@@ -25,8 +36,13 @@ interface BillingDetailProps {
   loading: boolean;
   error: string | null;
   role: UserRole;
+  workflowSubmitting: boolean;
   onClose: () => void;
   onEdit: () => void;
+  onSaveStage: (input: BillingStageProgressInput) => Promise<boolean>;
+  onSyncStages: () => Promise<void>;
+  onSaveTermin: (input: BillingTerminInput) => Promise<boolean>;
+  onRequestDeleteTermin: (termin: BillingTermin) => void;
   onOpenSuratPenunjukan?: (id: string) => void;
 }
 
@@ -62,16 +78,48 @@ const terminLabels = {
   cancelled: 'Dibatalkan',
 };
 
+const activityLabels: Record<string, string> = {
+  created: 'Monitoring dibuat',
+  updated: 'Data inti diperbarui',
+  stage_updated: 'Tahapan approval diperbarui',
+  stages_synced: 'Tahapan approval disinkronkan',
+  termin_created: 'Termin pembayaran ditambahkan',
+  termin_updated: 'Termin pembayaran diperbarui',
+  termin_deleted: 'Termin pembayaran dihapus',
+};
+
 export function BillingDetail({
   open,
   billing,
   loading,
   error,
   role,
+  workflowSubmitting,
   onClose,
   onEdit,
+  onSaveStage,
+  onSyncStages,
+  onSaveTermin,
+  onRequestDeleteTermin,
   onOpenSuratPenunjukan,
 }: BillingDetailProps) {
+  const [editingStageId, setEditingStageId] = useState<string | null>(null);
+  const [editingTerminId, setEditingTerminId] = useState<string | null>(null);
+  const [creatingTermin, setCreatingTermin] = useState(false);
+
+  useEffect(() => {
+    setEditingStageId(null);
+    setEditingTerminId(null);
+    setCreatingTermin(false);
+  }, [billing?.id, open]);
+
+  const nextTerminSequence = useMemo(
+    () => Math.max(0, ...(billing?.termins.map((termin) => termin.sequence_no) ?? [])) + 1,
+    [billing?.termins],
+  );
+
+  const editingTermin = billing?.termins.find((termin) => termin.id === editingTerminId) ?? null;
+
   return (
     <Modal
       open={open}
@@ -81,7 +129,7 @@ export function BillingDetail({
       size="xl"
       footer={
         role === 'admin' && billing ? (
-          <button className="btn-primary" onClick={onEdit}>
+          <button className="btn-primary" disabled={workflowSubmitting} onClick={onEdit}>
             <Pencil className="h-4 w-4" /> Edit Data Inti
           </button>
         ) : undefined
@@ -161,24 +209,59 @@ export function BillingDetail({
           </section>
 
           <section className="card overflow-hidden">
-            <div className="border-b border-gray-200 px-5 py-4">
-              <h3 className="text-sm font-bold text-gray-900">Timeline Approval</h3>
-              <p className="mt-0.5 text-xs text-gray-500">Read-only pada Patch 3; perubahan status masuk Patch 5.</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Timeline Approval</h3>
+                <p className="mt-0.5 text-xs text-gray-500">Status, waktu selesai, dan catatan setiap tahapan.</p>
+              </div>
+              {role === 'admin' && (
+                <button
+                  type="button"
+                  className="btn-secondary px-3 py-2"
+                  disabled={workflowSubmitting}
+                  onClick={() => void onSyncStages()}
+                >
+                  <RefreshCw className="h-4 w-4" /> Sinkronkan Tahapan
+                </button>
+              )}
             </div>
             <div className="divide-y divide-gray-100">
               {billing.stages.map((item) => (
-                <div key={item.id} className="flex items-start gap-3 px-5 py-3">
-                  <div className={`mt-0.5 rounded-full p-1.5 ${stageStyles[item.status]}`}>
-                    {item.status === 'completed' ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-gray-900">{item.stage.name}</p>
-                      <span className={`badge ${stageStyles[item.status]}`}>{stageLabels[item.status]}</span>
+                <div key={item.id} className="px-5 py-3">
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-0.5 rounded-full p-1.5 ${stageStyles[item.status]}`}>
+                      {item.status === 'completed' ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
                     </div>
-                    {item.completed_at && <p className="mt-1 text-xs text-gray-500">Selesai: {formatDate(item.completed_at)}</p>}
-                    {item.note && <p className="mt-1 text-xs text-gray-600">{item.note}</p>}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-gray-900">{item.stage.name}</p>
+                        <div className="flex items-center gap-2">
+                          <span className={`badge ${stageStyles[item.status]}`}>{stageLabels[item.status]}</span>
+                          {role === 'admin' && editingStageId !== item.id && (
+                            <button
+                              type="button"
+                              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-brand-600"
+                              aria-label={`Edit ${item.stage.name}`}
+                              disabled={workflowSubmitting}
+                              onClick={() => setEditingStageId(item.id)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {item.completed_at && <p className="mt-1 text-xs text-gray-500">Selesai: {formatDate(item.completed_at)}</p>}
+                      {item.note && <p className="mt-1 text-xs text-gray-600">{item.note}</p>}
+                    </div>
                   </div>
+                  {role === 'admin' && editingStageId === item.id && (
+                    <BillingStageEditor
+                      stage={item}
+                      submitting={workflowSubmitting}
+                      onCancel={() => setEditingStageId(null)}
+                      onSubmit={onSaveStage}
+                    />
+                  )}
                 </div>
               ))}
               {billing.stages.length === 0 && <p className="px-5 py-8 text-center text-sm text-gray-500">Belum ada tahapan approval.</p>}
@@ -186,12 +269,41 @@ export function BillingDetail({
           </section>
 
           <section className="card overflow-hidden">
-            <div className="border-b border-gray-200 px-5 py-4">
-              <h3 className="text-sm font-bold text-gray-900">Termin Pembayaran</h3>
-              <p className="mt-0.5 text-xs text-gray-500">Read-only pada Patch 3; pengelolaan termin masuk Patch 5.</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Termin Pembayaran</h3>
+                <p className="mt-0.5 text-xs text-gray-500">Rencana, realisasi tagihan, dan pembayaran per termin.</p>
+              </div>
+              {role === 'admin' && !creatingTermin && editingTerminId === null && (
+                <button
+                  type="button"
+                  className="btn-primary px-3 py-2"
+                  disabled={workflowSubmitting}
+                  onClick={() => setCreatingTermin(true)}
+                >
+                  <Plus className="h-4 w-4" /> Tambah Termin
+                </button>
+              )}
             </div>
+
+            {role === 'admin' && (creatingTermin || editingTermin) && (
+              <BillingTerminEditor
+                billingId={billing.id}
+                termin={editingTermin}
+                nextSequence={nextTerminSequence}
+                contractValue={billing.contract_value}
+                existingTermins={billing.termins}
+                submitting={workflowSubmitting}
+                onCancel={() => {
+                  setCreatingTermin(false);
+                  setEditingTerminId(null);
+                }}
+                onSubmit={onSaveTermin}
+              />
+            )}
+
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[900px] text-left text-sm">
                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                   <tr>
                     <th className="px-4 py-3 text-left">Termin</th>
@@ -200,21 +312,58 @@ export function BillingDetail({
                     <th className="px-4 py-3 text-left">Ditagihkan</th>
                     <th className="px-4 py-3 text-left">Dibayar</th>
                     <th className="px-4 py-3 text-left">Status</th>
+                    {role === 'admin' && <th className="px-4 py-3 text-left">Action</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {billing.termins.map((termin) => (
                     <tr key={termin.id}>
-                      <td className="px-4 py-3 text-left font-medium text-gray-900">{termin.name}</td>
+                      <td className="px-4 py-3 text-left">
+                        <p className="font-medium text-gray-900">{termin.sequence_no}. {termin.name}</p>
+                        {termin.notes && <p className="mt-0.5 max-w-xs truncate text-xs text-gray-500">{termin.notes}</p>}
+                      </td>
                       <td className="px-4 py-3 text-left text-gray-600">{termin.percentage === null ? '-' : `${termin.percentage}%`}</td>
                       <td className="px-4 py-3 text-left text-gray-700">{formatRupiah(termin.planned_amount)}</td>
-                      <td className="px-4 py-3 text-left text-gray-700">{formatRupiah(termin.billed_amount)}</td>
-                      <td className="px-4 py-3 text-left text-gray-700">{formatRupiah(termin.paid_amount)}</td>
+                      <td className="px-4 py-3 text-left text-gray-700">
+                        <p>{formatRupiah(termin.billed_amount)}</p>
+                        <p className="mt-0.5 text-xs text-gray-500">{formatDate(termin.billed_date)}</p>
+                      </td>
+                      <td className="px-4 py-3 text-left text-gray-700">
+                        <p>{formatRupiah(termin.paid_amount)}</p>
+                        <p className="mt-0.5 text-xs text-gray-500">{formatDate(termin.paid_date)}</p>
+                      </td>
                       <td className="px-4 py-3 text-left"><span className="badge bg-gray-100 text-gray-700">{terminLabels[termin.status]}</span></td>
+                      {role === 'admin' && (
+                        <td className="px-4 py-3 text-left">
+                          <div className="flex items-center justify-start gap-1">
+                            <button
+                              type="button"
+                              className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-brand-600"
+                              aria-label={`Edit ${termin.name}`}
+                              disabled={workflowSubmitting}
+                              onClick={() => {
+                                setCreatingTermin(false);
+                                setEditingTerminId(termin.id);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                              aria-label={`Hapus ${termin.name}`}
+                              disabled={workflowSubmitting}
+                              onClick={() => onRequestDeleteTermin(termin)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                   {billing.termins.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">Belum ada template atau termin pembayaran.</td></tr>
+                    <tr><td colSpan={role === 'admin' ? 7 : 6} className="px-4 py-8 text-center text-sm text-gray-500">Belum ada template atau termin pembayaran.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -228,9 +377,7 @@ export function BillingDetail({
                 <div key={activity.id} className="flex items-start gap-3 rounded-lg bg-gray-50 p-3">
                   <FileText className="mt-0.5 h-4 w-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {activity.action === 'created' ? 'Monitoring dibuat' : activity.action === 'updated' ? 'Data inti diperbarui' : activity.action}
-                    </p>
+                    <p className="text-sm font-medium text-gray-800">{activityLabels[activity.action] ?? activity.action}</p>
                     <p className="mt-0.5 text-xs text-gray-500">{formatDate(activity.created_at)}</p>
                   </div>
                 </div>

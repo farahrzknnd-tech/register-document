@@ -58,6 +58,10 @@ Patch 2 menambahkan tab Master Kontraktor, Status Billing, Tahapan Approval, dan
 
 ## Billing Monitoring Core
 
-Patch 3 menambahkan menu Monitoring Tagihan, daftar SPK/tagihan, filter, ringkasan finansial, form tambah/edit, detail read-only timeline dan termin, serta secure RPC untuk mutasi data inti. Lihat `docs/BILLING_MONITORING_CORE.md`.
+Patch 3 menambahkan menu Monitoring Tagihan, daftar SPK/tagihan, filter, ringkasan finansial, form tambah/edit, detail monitoring, serta secure RPC untuk mutasi data inti. Lihat `docs/BILLING_MONITORING_CORE.md`.
 
-Lihat `docs/BILLING_MASTER_DATA.md`.
+## Billing Approval dan Termin
+
+Patch 5 mengaktifkan pengelolaan timeline approval serta termin pembayaran untuk admin, termasuk catatan tahapan, realisasi tagihan/pembayaran, validasi finansial, activity log, dan secure RPC. Lihat `docs/BILLING_APPROVAL_TERMIN_MANAGEMENT.md`.
+
+Lihat juga `docs/BILLING_MASTER_DATA.md`.

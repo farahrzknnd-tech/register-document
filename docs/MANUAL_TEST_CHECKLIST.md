@@ -89,3 +89,25 @@
 - [ ] Percobaan membuat billing kedua untuk Surat Penunjukan yang sama ditolak.
 - [ ] Viewer tidak melihat tombol create tetapi dapat membuka billing yang sudah ada.
 - [ ] Detail Monitoring Tagihan dapat membuka Surat Penunjukan sumber.
+
+## Billing Approval Timeline dan Termin Pembayaran
+
+- [ ] Admin membuka detail Monitoring Tagihan dan melihat tombol edit pada setiap tahapan.
+- [ ] Ubah tahapan menjadi `Sedang Diproses`; perubahan tersimpan dan posisi dokumen pada tabel ikut berubah.
+- [ ] Ubah tahapan menjadi `Selesai`; tanggal/waktu selesai wajib diisi.
+- [ ] Ubah catatan tahapan dan pastikan activity log mencatat `Tahapan approval diperbarui`.
+- [ ] Tambah Master Tahapan Approval baru, lalu klik `Sinkronkan Tahapan` pada monitoring lama.
+- [ ] Viewer tidak melihat tombol edit atau sinkronisasi tahapan.
+- [ ] Admin menambah termin manual tanpa template.
+- [ ] Edit termin hasil template dan pastikan nilai rencana, tagihan, pembayaran, tanggal, serta status tersimpan.
+- [ ] Coba nilai ditagihkan melebihi nilai rencana; simpan harus ditolak.
+- [ ] Coba nilai dibayar melebihi nilai ditagihkan; simpan harus ditolak.
+- [ ] Isi nilai tagihan tanpa tanggal tagihan; simpan harus ditolak.
+- [ ] Isi nilai pembayaran tanpa tanggal pembayaran; simpan harus ditolak.
+- [ ] Coba tanggal pembayaran lebih awal dari tanggal tagihan; simpan harus ditolak.
+- [ ] Ubah status menjadi `Lunas` dengan nilai dibayar tidak sama dengan nilai tagihan; simpan harus ditolak.
+- [ ] Hapus termin tanpa realisasi finansial; penghapusan berhasil.
+- [ ] Hapus termin yang sudah memiliki tagihan/pembayaran; penghapusan ditolak.
+- [ ] Ringkasan total ditagihkan, dibayar, sisa kontrak, dan persentase diperbarui setelah termin disimpan.
+- [ ] Viewer tidak melihat tombol tambah, edit, atau hapus termin.
+- [ ] Direct insert/update/delete ke `billing_stage_progress` dan `billing_termins` sebagai browser role ditolak.

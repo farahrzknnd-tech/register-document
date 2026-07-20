@@ -129,6 +129,29 @@ export interface BillingTermin {
   updated_at: string;
 }
 
+
+export interface BillingStageProgressInput {
+  progress_id: string;
+  status: BillingStageStatus;
+  completed_at: string | null;
+  note: string;
+}
+
+export interface BillingTerminInput {
+  billing_id: string;
+  termin_id: string | null;
+  sequence_no: number;
+  name: string;
+  percentage: number | null;
+  planned_amount: number;
+  billed_amount: number;
+  paid_amount: number;
+  status: BillingTerminStatus;
+  billed_date: string | null;
+  paid_date: string | null;
+  notes: string;
+}
+
 export interface SpkBillingFinancialSummary {
   billing_id: string;
   contract_value: number;

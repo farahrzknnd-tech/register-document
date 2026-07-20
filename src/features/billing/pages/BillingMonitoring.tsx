@@ -20,9 +20,13 @@ import type { Cluster, Project, SuratPenunjukan, UserRole } from '../../../lib/t
 import { formatDate } from '../../../lib/utils';
 import {
   createSpkBilling,
+  deleteBillingTermin,
   deleteSpkBilling,
   fetchSpkBillingDetail,
   fetchSpkBillings,
+  saveBillingTermin,
+  syncBillingStageProgress,
+  updateBillingStageProgress,
   updateSpkBilling,
 } from '../api/billings';
 import {
@@ -35,7 +39,10 @@ import { BillingForm } from '../components/BillingForm';
 import { BillingStatusBadge } from '../components/BillingStatusBadge';
 import type {
   BillingFilterState,
+  BillingStageProgressInput,
   BillingStatus,
+  BillingTermin,
+  BillingTerminInput,
   BillingTerminTemplate,
   Contractor,
   SpkBillingDetail,
@@ -99,6 +106,8 @@ export function BillingMonitoring({
   const [detail, setDetail] = useState<SpkBillingDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [workflowSubmitting, setWorkflowSubmitting] = useState(false);
+  const [terminDeleteTarget, setTerminDeleteTarget] = useState<BillingTermin | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -252,6 +261,85 @@ export function BillingMonitoring({
     const target = detailBase;
     setDetailOpen(false);
     if (target) openEdit(target);
+  };
+
+  const refreshDetail = useCallback(async (billingId: string) => {
+    setDetailLoading(true);
+    setDetailError(null);
+    try {
+      const rows = await fetchSpkBillings();
+      setBillings(rows);
+      const base = rows.find((billing) => billing.id === billingId);
+      if (!base) throw new Error('SPK billing not found');
+      setDetailBase(base);
+      setDetail(await fetchSpkBillingDetail(base));
+    } catch (refreshError) {
+      setDetailError(mapAppError(refreshError));
+      throw refreshError;
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
+  const handleSaveStage = async (input: BillingStageProgressInput): Promise<boolean> => {
+    if (!detail) return false;
+    setWorkflowSubmitting(true);
+    try {
+      await updateBillingStageProgress(input);
+      await refreshDetail(detail.id);
+      toast.show('Tahapan approval berhasil diperbarui.', 'success');
+      return true;
+    } catch (stageError) {
+      toast.show(mapAppError(stageError), 'error');
+      return false;
+    } finally {
+      setWorkflowSubmitting(false);
+    }
+  };
+
+  const handleSyncStages = async () => {
+    if (!detail) return;
+    setWorkflowSubmitting(true);
+    try {
+      await syncBillingStageProgress(detail.id);
+      await refreshDetail(detail.id);
+      toast.show('Tahapan approval berhasil disinkronkan.', 'success');
+    } catch (syncError) {
+      toast.show(mapAppError(syncError), 'error');
+    } finally {
+      setWorkflowSubmitting(false);
+    }
+  };
+
+  const handleSaveTermin = async (input: BillingTerminInput): Promise<boolean> => {
+    if (!detail) return false;
+    setWorkflowSubmitting(true);
+    try {
+      await saveBillingTermin(input);
+      await refreshDetail(detail.id);
+      toast.show(input.termin_id ? 'Termin berhasil diperbarui.' : 'Termin berhasil ditambahkan.', 'success');
+      return true;
+    } catch (terminError) {
+      toast.show(mapAppError(terminError), 'error');
+      return false;
+    } finally {
+      setWorkflowSubmitting(false);
+    }
+  };
+
+  const handleDeleteTermin = async () => {
+    if (!terminDeleteTarget || !detail) return;
+    setWorkflowSubmitting(true);
+    try {
+      await deleteBillingTermin(terminDeleteTarget.id);
+      setTerminDeleteTarget(null);
+      await refreshDetail(detail.id);
+      toast.show('Termin berhasil dihapus.', 'success');
+    } catch (terminError) {
+      toast.show(mapAppError(terminError), 'error');
+    } finally {
+      setWorkflowSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -441,8 +529,13 @@ export function BillingMonitoring({
         loading={detailLoading}
         error={detailError}
         role={role}
+        workflowSubmitting={workflowSubmitting}
         onClose={() => setDetailOpen(false)}
         onEdit={handleEditFromDetail}
+        onSaveStage={handleSaveStage}
+        onSyncStages={handleSyncStages}
+        onSaveTermin={handleSaveTermin}
+        onRequestDeleteTermin={setTerminDeleteTarget}
         onOpenSuratPenunjukan={onOpenSuratPenunjukan}
       />
 
@@ -453,6 +546,15 @@ export function BillingMonitoring({
         title="Hapus Monitoring Tagihan"
         message={`Hapus monitoring ${deleteTarget?.spk_number ?? ''}? Tahapan, termin, dan riwayat terkait juga akan dihapus.`}
         confirmLabel="Hapus Monitoring"
+      />
+
+      <ConfirmDialog
+        open={Boolean(terminDeleteTarget)}
+        onClose={() => setTerminDeleteTarget(null)}
+        onConfirm={() => void handleDeleteTermin()}
+        title="Hapus Termin Pembayaran"
+        message={`Hapus ${terminDeleteTarget?.name ?? 'termin ini'}? Termin yang sudah memiliki nilai tagihan atau pembayaran tidak dapat dihapus.`}
+        confirmLabel="Hapus Termin"
       />
     </div>
   );

@@ -24,6 +24,9 @@ export function mapAppError(error: unknown): string {
   if (/Unsupported document|Unsupported register/i.test(message)) return 'Jenis dokumen tidak didukung.';
   if (/Referenced document not found|P0002/i.test(message)) return 'Dokumen referensi tidak ditemukan.';
   if (/Cross-project/i.test(message)) return 'Referensi beda proyek ditolak.';
+  if (/PGRST202.*(update_billing_stage_progress|sync_billing_stage_progress|save_billing_termin|delete_billing_termin)|Could not find the function public\.(update_billing_stage_progress|sync_billing_stage_progress|save_billing_termin|delete_billing_termin)/i.test(message)) {
+    return 'Fungsi Approval dan Termin belum tersedia pada Supabase yang sedang digunakan. Terapkan migration Patch 5, lalu muat ulang aplikasi.';
+  }
   if (/PGRST202|Could not find the function public\.create_spk_billing|Could not find the function public\.update_spk_billing/i.test(message)) {
     return 'Fungsi Monitoring Tagihan belum tersedia pada Supabase yang sedang digunakan. Terapkan migration Patch 3 ke Supabase Cloud, lalu muat ulang aplikasi.';
   }
@@ -39,6 +42,26 @@ export function mapAppError(error: unknown): string {
   if (/Contractor not found/i.test(message)) return 'Kontraktor tidak ditemukan.';
   if (/Surat Penunjukan not found/i.test(message)) return 'Surat Penunjukan tidak ditemukan.';
   if (/Billing termin template not found/i.test(message)) return 'Template termin tidak ditemukan.';
+  if (/Billing stage progress not found/i.test(message)) return 'Tahapan approval tidak ditemukan.';
+  if (/Unsupported billing stage status/i.test(message)) return 'Status tahapan approval tidak didukung.';
+  if (/Billing termin not found/i.test(message)) return 'Termin pembayaran tidak ditemukan.';
+  if (/Billing termin sequence must be greater than zero/i.test(message)) return 'Urutan termin harus lebih dari nol.';
+  if (/Billing termin name is required/i.test(message)) return 'Nama termin wajib diisi.';
+  if (/Billing termin percentage must be between zero and 100/i.test(message)) return 'Persentase termin harus berada di antara 0 dan 100.';
+  if (/Billing termin amounts cannot be negative/i.test(message)) return 'Nilai termin tidak boleh negatif.';
+  if (/Billing termin planned amount exceeds contract value/i.test(message)) return 'Nilai rencana termin melebihi nilai kontrak.';
+  if (/Billing termin billed amount exceeds planned amount/i.test(message)) return 'Nilai ditagihkan melebihi nilai rencana termin.';
+  if (/Billing termin paid amount exceeds billed amount/i.test(message)) return 'Nilai dibayar melebihi nilai ditagihkan.';
+  if (/Billing termin billed date is required/i.test(message)) return 'Tanggal tagihan wajib diisi.';
+  if (/Billing termin paid date is required/i.test(message)) return 'Tanggal pembayaran wajib diisi.';
+  if (/Billing termin paid date cannot be earlier/i.test(message)) return 'Tanggal pembayaran tidak boleh lebih awal dari tanggal tagihan.';
+  if (/Unsupported billing termin status/i.test(message)) return 'Status termin tidak didukung.';
+  if (/Not billed termin cannot contain/i.test(message)) return 'Termin Belum Ditagihkan harus memiliki nilai tagihan dan pembayaran nol.';
+  if (/In process termin cannot contain/i.test(message)) return 'Termin Sedang Diproses harus memiliki nilai tagihan dan pembayaran nol.';
+  if (/Billed termin requires/i.test(message)) return 'Status Ditagihkan membutuhkan nilai tagihan dan nilai pembayaran nol.';
+  if (/Partially paid termin requires/i.test(message)) return 'Status Dibayar Sebagian membutuhkan pembayaran di bawah nilai tagihan.';
+  if (/Paid termin requires/i.test(message)) return 'Status Lunas membutuhkan nilai dibayar sama dengan nilai tagihan.';
+  if (/Billing termin with financial realization cannot be deleted/i.test(message)) return 'Termin yang sudah memiliki nilai tagihan atau pembayaran tidak dapat dihapus.';
   if (/spk_billings_surat_penunjukan_unique|Surat Penunjukan.*already.*billing/i.test(message)) {
     return 'Surat Penunjukan ini sudah memiliki Monitoring Tagihan.';
   }
