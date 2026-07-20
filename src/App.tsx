@@ -15,6 +15,7 @@ import {
 import type { Gambar, Surat, BeritaAcara, SuratPenunjukan, Project, Cluster, DocType } from './lib/types';
 import { useAuth } from './lib/auth';
 import { Login } from './pages/Login';
+import { BillingMonitoring } from './features/billing/pages/BillingMonitoring';
 
 type PendingDetail =
   | { type: 'gambar'; doc: Gambar }
@@ -159,6 +160,13 @@ function App() {
             onOpenDoc={handleOpenDoc}
             initialDetailItem={pendingDetail?.type === 'surat_penunjukan' ? pendingDetail.doc : null}
             onConsumeInitialDetail={consumeDetail}
+          />
+        )}
+        {page === 'billing' && (
+          <BillingMonitoring
+            projects={projects}
+            clusters={clusters}
+            role={role}
           />
         )}
         {page === 'master' && role === 'admin' && (

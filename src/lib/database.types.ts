@@ -1043,6 +1043,59 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_spk_billing: {
+        Args: {
+          p_billing_status_id: string
+          p_cluster_id: string
+          p_contract_value: number
+          p_contractor_id: string
+          p_contractor_name_snapshot: string
+          p_document_drive_url: string
+          p_kickoff_date: string
+          p_notes: string
+          p_project_id: string
+          p_spk_date: string
+          p_spk_number: string
+          p_stage_weight: string
+          p_surat_penunjukan_id: string
+          p_termin_template_id: string
+          p_work_finish_date: string
+          p_work_location: string
+          p_work_name: string
+          p_work_start_date: string
+        }
+        Returns: {
+          billing_status_id: string
+          cluster_id: string | null
+          contract_value: number
+          contractor_id: string | null
+          contractor_name_snapshot: string
+          created_at: string
+          created_by: string | null
+          document_drive_url: string | null
+          id: string
+          kickoff_date: string | null
+          notes: string | null
+          project_id: string | null
+          spk_date: string | null
+          spk_number: string
+          stage_weight: string | null
+          surat_penunjukan_id: string | null
+          termin_template_id: string | null
+          updated_at: string
+          updated_by: string | null
+          work_finish_date: string | null
+          work_location: string | null
+          work_name: string
+          work_start_date: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "spk_billings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_surat: {
         Args: {
           p_cluster_id: string
@@ -1126,6 +1179,40 @@ export type Database = {
       }
       current_user_active: { Args: never; Returns: boolean }
       current_user_admin: { Args: never; Returns: boolean }
+      delete_spk_billing: {
+        Args: { p_billing_id: string }
+        Returns: {
+          billing_status_id: string
+          cluster_id: string | null
+          contract_value: number
+          contractor_id: string | null
+          contractor_name_snapshot: string
+          created_at: string
+          created_by: string | null
+          document_drive_url: string | null
+          id: string
+          kickoff_date: string | null
+          notes: string | null
+          project_id: string | null
+          spk_date: string | null
+          spk_number: string
+          stage_weight: string | null
+          surat_penunjukan_id: string | null
+          termin_template_id: string | null
+          updated_at: string
+          updated_by: string | null
+          work_finish_date: string | null
+          work_location: string | null
+          work_name: string
+          work_start_date: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "spk_billings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       document_exists: {
         Args: { p_id: string; p_type: string }
         Returns: boolean
@@ -1243,6 +1330,58 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "gambar"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_spk_billing: {
+        Args: {
+          p_billing_id: string
+          p_billing_status_id: string
+          p_cluster_id: string
+          p_contract_value: number
+          p_contractor_id: string
+          p_contractor_name_snapshot: string
+          p_document_drive_url: string
+          p_kickoff_date: string
+          p_notes: string
+          p_project_id: string
+          p_spk_date: string
+          p_spk_number: string
+          p_stage_weight: string
+          p_work_finish_date: string
+          p_work_location: string
+          p_work_name: string
+          p_work_start_date: string
+        }
+        Returns: {
+          billing_status_id: string
+          cluster_id: string | null
+          contract_value: number
+          contractor_id: string | null
+          contractor_name_snapshot: string
+          created_at: string
+          created_by: string | null
+          document_drive_url: string | null
+          id: string
+          kickoff_date: string | null
+          notes: string | null
+          project_id: string | null
+          spk_date: string | null
+          spk_number: string
+          stage_weight: string | null
+          surat_penunjukan_id: string | null
+          termin_template_id: string | null
+          updated_at: string
+          updated_by: string | null
+          work_finish_date: string | null
+          work_location: string | null
+          work_name: string
+          work_start_date: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "spk_billings"
           isOneToOne: true
           isSetofReturn: false
         }

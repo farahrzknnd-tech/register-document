@@ -57,3 +57,22 @@
 - Edit template dan pastikan header serta item berubah bersama.
 - Coba hapus master yang sudah dipakai billing; penghapusan harus ditolak.
 - Login viewer dan pastikan menu Master Data tidak tersedia serta mutation langsung ditolak RLS.
+
+
+## Billing Monitoring Core
+
+- Login admin dan pastikan menu `Monitoring Tagihan` tampil.
+- Tambah monitoring dengan nomor SPK, status, kontraktor, pekerjaan, dan nilai kontrak.
+- Simpan monitoring tanpa Project dan Cluster; penyimpanan harus berhasil.
+- Simpan Project dan Cluster yang berbeda ownership master; penyimpanan harus berhasil.
+- Pilih Template Termin saat create dan pastikan detail menampilkan termin hasil inisialisasi.
+- Edit data inti dan pastikan activity log menampilkan aktivitas update.
+- Pastikan Template Termin tidak dapat diganti dari form edit Patch 3.
+- Cari berdasarkan nomor SPK, kontraktor, pekerjaan, project, atau cluster.
+- Uji filter Status, Project, Cluster, dan Kontraktor secara independen.
+- Uji sorting terbaru, terlama, nomor SPK, dan nilai kontrak terbesar.
+- Buka detail dan verifikasi ringkasan kontrak, tagihan, pembayaran, timeline, dan termin.
+- Hapus monitoring dan pastikan stage, termin, serta activity terkait ikut terhapus.
+- Login viewer dan pastikan tombol tambah, edit, dan hapus tidak tersedia.
+- Coba direct insert/update/delete `spk_billings` sebagai authenticated browser role; privilege harus ditolak.
+- Coba akses RPC create/update/delete sebagai viewer; validasi admin internal harus menolak.

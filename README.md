@@ -56,4 +56,8 @@ Lihat `docs/BILLING_DATABASE_FOUNDATION.md`. Setelah migration lokal diterapkan,
 
 Patch 2 menambahkan tab Master Kontraktor, Status Billing, Tahapan Approval, dan Template Termin di halaman Master Data. Template beserta itemnya disimpan atomik melalui RPC admin-only.
 
+## Billing Monitoring Core
+
+Patch 3 menambahkan menu Monitoring Tagihan, daftar SPK/tagihan, filter, ringkasan finansial, form tambah/edit, detail read-only timeline dan termin, serta secure RPC untuk mutasi data inti. Lihat `docs/BILLING_MONITORING_CORE.md`.
+
 Lihat `docs/BILLING_MASTER_DATA.md`.

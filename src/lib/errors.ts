@@ -24,6 +24,17 @@ export function mapAppError(error: unknown): string {
   if (/Unsupported document|Unsupported register/i.test(message)) return 'Jenis dokumen tidak didukung.';
   if (/Referenced document not found|P0002/i.test(message)) return 'Dokumen referensi tidak ditemukan.';
   if (/Cross-project/i.test(message)) return 'Referensi beda proyek ditolak.';
+  if (/SPK billing not found/i.test(message)) return 'Monitoring tagihan tidak ditemukan.';
+  if (/SPK number is required/i.test(message)) return 'Nomor SPK wajib diisi.';
+  if (/Work name is required/i.test(message)) return 'Nama pekerjaan wajib diisi.';
+  if (/Contractor name is required/i.test(message)) return 'Nama kontraktor wajib diisi.';
+  if (/Contract value must be zero or greater/i.test(message)) return 'Nilai kontrak tidak boleh negatif.';
+  if (/Contract value is locked after termin initialization/i.test(message)) return 'Nilai kontrak tidak dapat diubah setelah termin dibuat.';
+  if (/Work finish date cannot be earlier/i.test(message)) return 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.';
+  if (/Billing status not found or inactive/i.test(message)) return 'Status billing tidak ditemukan atau sudah nonaktif.';
+  if (/Billing status not found/i.test(message)) return 'Status billing tidak ditemukan.';
+  if (/Contractor not found/i.test(message)) return 'Kontraktor tidak ditemukan.';
+  if (/Surat Penunjukan not found/i.test(message)) return 'Surat Penunjukan tidak ditemukan.';
   if (/Billing termin template not found/i.test(message)) return 'Template termin tidak ditemukan.';
   if (/requires at least one active item/i.test(message)) return 'Template termin harus memiliki minimal satu item aktif.';
   if (/contains invalid items/i.test(message)) return 'Item template termin belum valid.';

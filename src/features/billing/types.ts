@@ -139,3 +139,118 @@ export interface SpkBillingFinancialSummary {
   billing_percentage: number;
   payment_percentage: number;
 }
+
+export interface BillingProjectSummary {
+  id: string;
+  name: string;
+  code: string | null;
+}
+
+export interface BillingClusterSummary {
+  id: string;
+  name: string;
+  code: string | null;
+}
+
+export interface BillingContractorSummary {
+  id: string;
+  name: string;
+  code: string | null;
+  active: boolean;
+}
+
+export interface BillingStatusSummary {
+  id: string;
+  code: string;
+  name: string;
+  color_key: BillingStatus['color_key'];
+  sort_order: number;
+  terminal: boolean;
+  active: boolean;
+}
+
+export interface BillingSuratPenunjukanSummary {
+  id: string;
+  register_no: string | null;
+  nomor_sp: string;
+  tanggal_sp: string;
+}
+
+export interface BillingTerminTemplateSummary {
+  id: string;
+  code: string;
+  name: string;
+  active: boolean;
+}
+
+export interface BillingCurrentStage {
+  id: string;
+  code: string;
+  name: string;
+  sort_order: number;
+  status: BillingStageStatus;
+  completed_at: string | null;
+}
+
+export interface SpkBillingListItem extends SpkBilling {
+  project: BillingProjectSummary | null;
+  cluster: BillingClusterSummary | null;
+  contractor: BillingContractorSummary | null;
+  status: BillingStatusSummary;
+  surat_penunjukan: BillingSuratPenunjukanSummary | null;
+  termin_template: BillingTerminTemplateSummary | null;
+  financial: SpkBillingFinancialSummary;
+  current_stage: BillingCurrentStage | null;
+}
+
+export interface BillingStageProgressDetail extends BillingStageProgress {
+  stage: BillingStageDefinition;
+}
+
+export interface BillingActivityLog {
+  id: string;
+  billing_id: string;
+  entity_type: 'billing' | 'stage' | 'termin';
+  entity_id: string | null;
+  action: string;
+  old_value: unknown;
+  new_value: unknown;
+  actor_user_id: string | null;
+  created_at: string;
+}
+
+export interface SpkBillingDetail extends SpkBillingListItem {
+  stages: BillingStageProgressDetail[];
+  termins: BillingTermin[];
+  activities: BillingActivityLog[];
+}
+
+export interface SpkBillingInput {
+  surat_penunjukan_id: string | null;
+  project_id: string | null;
+  cluster_id: string | null;
+  contractor_id: string | null;
+  termin_template_id: string | null;
+  billing_status_id: string;
+  spk_number: string;
+  spk_date: string | null;
+  contractor_name_snapshot: string;
+  work_name: string;
+  work_location: string;
+  work_start_date: string | null;
+  work_finish_date: string | null;
+  kickoff_date: string | null;
+  stage_weight: string;
+  contract_value: number;
+  document_drive_url: string;
+  notes: string;
+}
+
+export interface BillingFilterState {
+  search: string;
+  statusId: string;
+  projectId: string;
+  clusterId: string;
+  contractorId: string;
+  sort: 'newest' | 'oldest' | 'spk_asc' | 'contract_desc';
+}

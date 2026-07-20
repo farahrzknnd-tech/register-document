@@ -122,8 +122,8 @@ select extensions.ok(
   'authenticated receives table select privilege governed by RLS'
 );
 select extensions.ok(
-  has_table_privilege('authenticated', 'public.spk_billings', 'insert'),
-  'authenticated receives table insert privilege governed by admin RLS'
+  not has_table_privilege('authenticated', 'public.spk_billings', 'insert'),
+  'browser roles cannot bypass billing create RPC with direct insert'
 );
 select extensions.ok(
   exists (

@@ -10,6 +10,7 @@ import {
   Building2,
   FileSignature,
   FileCheck,
+  ReceiptText,
   Shield,
   Eye,
 } from 'lucide-react';
@@ -17,7 +18,7 @@ import type { UserRole } from '../lib/types';
 import { ROLE_LABELS } from '../lib/types';
 import { Footer } from './Footer';
 
-export type PageId = 'dashboard' | 'gambar' | 'surat' | 'beritaAcara' | 'suratPenunjukan' | 'master' | 'laporan';
+export type PageId = 'dashboard' | 'gambar' | 'surat' | 'beritaAcara' | 'suratPenunjukan' | 'billing' | 'master' | 'laporan';
 
 interface LayoutProps {
   current: PageId;
@@ -34,6 +35,7 @@ const allMenuItems: { id: PageId; label: string; icon: typeof LayoutDashboard; a
   { id: 'surat', label: 'Register Surat', icon: Mail },
   { id: 'beritaAcara', label: 'Register Berita Acara', icon: FileCheck },
   { id: 'suratPenunjukan', label: 'Register Surat Penunjukan', icon: FileSignature },
+  { id: 'billing', label: 'Monitoring Tagihan', icon: ReceiptText },
   { id: 'master', label: 'Master Data', icon: Database, adminOnly: true },
   { id: 'laporan', label: 'Laporan', icon: BarChart3 },
 ];
