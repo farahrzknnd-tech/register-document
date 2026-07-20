@@ -17,6 +17,7 @@ import type { Gambar, Surat, BeritaAcara, SuratPenunjukan, Project, Cluster, Doc
 import { useAuth } from './lib/auth';
 import { Login } from './pages/Login';
 import { BillingMonitoring } from './features/billing/pages/BillingMonitoring';
+import { BillingDashboard } from './features/billing/pages/BillingDashboard';
 
 type PendingDetail =
   | { type: 'gambar'; doc: Gambar }
@@ -215,6 +216,14 @@ function App() {
             onConsumeInitialDetail={consumeDetail}
             onCreateBilling={handleCreateBillingFromSuratPenunjukan}
             onOpenBilling={handleOpenBilling}
+          />
+        )}
+        {page === 'billingDashboard' && (
+          <BillingDashboard
+            projects={projects}
+            clusters={clusters}
+            onOpenBilling={handleOpenBilling}
+            onOpenMonitoring={() => navigateToPage('billing')}
           />
         )}
         {page === 'billing' && (

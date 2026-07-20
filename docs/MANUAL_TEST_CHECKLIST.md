@@ -111,3 +111,17 @@
 - [ ] Ringkasan total ditagihkan, dibayar, sisa kontrak, dan persentase diperbarui setelah termin disimpan.
 - [ ] Viewer tidak melihat tombol tambah, edit, atau hapus termin.
 - [ ] Direct insert/update/delete ke `billing_stage_progress` dan `billing_termins` sebagai browser role ditolak.
+
+## Billing Dashboard
+
+- Buka menu `Dashboard Tagihan` dan pastikan URL berubah menjadi `#/billingDashboard`.
+- Refresh browser dan pastikan tetap berada pada Dashboard Tagihan.
+- Pastikan KPI total monitoring, kontraktor, kontrak, tagihan, pembayaran, dan sisa kontrak tampil.
+- Uji filter Project, Cluster, Kontraktor, dan Status secara independen.
+- Pastikan reset filter mengembalikan seluruh data.
+- Pastikan progress finansial sesuai ringkasan pada Monitoring Tagihan.
+- Pastikan breakdown Project, Cluster, Status, dan Tahapan Approval tampil.
+- Pastikan item terlambat, belum dibayar, belum ditagihkan, atau mendekati selesai masuk ke `Perlu Perhatian`.
+- Klik item `Perlu Perhatian` dan pastikan detail Monitoring Tagihan terbuka.
+- Klik `Lihat Monitoring` dan pastikan pindah ke daftar Monitoring Tagihan.
+- Login sebagai viewer dan pastikan dashboard tetap dapat dibaca tanpa kontrol mutasi.

@@ -36,6 +36,7 @@ const allMenuItems: { id: PageId; label: string; icon: typeof LayoutDashboard; a
   { id: 'surat', label: 'Register Surat', icon: Mail },
   { id: 'beritaAcara', label: 'Register Berita Acara', icon: FileCheck },
   { id: 'suratPenunjukan', label: 'Register Surat Penunjukan', icon: FileSignature },
+  { id: 'billingDashboard', label: 'Dashboard Tagihan', icon: BarChart3 },
   { id: 'billing', label: 'Monitoring Tagihan', icon: ReceiptText },
   { id: 'master', label: 'Master Data', icon: Database, adminOnly: true },
   { id: 'laporan', label: 'Laporan', icon: BarChart3 },

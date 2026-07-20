@@ -65,3 +65,7 @@ Patch 3 menambahkan menu Monitoring Tagihan, daftar SPK/tagihan, filter, ringkas
 Patch 5 mengaktifkan pengelolaan timeline approval serta termin pembayaran untuk admin, termasuk catatan tahapan, realisasi tagihan/pembayaran, validasi finansial, activity log, dan secure RPC. Lihat `docs/BILLING_APPROVAL_TERMIN_MANAGEMENT.md`.
 
 Lihat juga `docs/BILLING_MASTER_DATA.md`.
+
+## Billing Dashboard
+
+Patch 6 menambahkan halaman Dashboard Tagihan dengan KPI kontrak, tagihan, pembayaran, breakdown Project/Cluster/Status/Tahapan, serta daftar monitoring yang perlu perhatian. Lihat `docs/BILLING_DASHBOARD.md`.

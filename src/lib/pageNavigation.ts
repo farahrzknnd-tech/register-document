@@ -4,6 +4,7 @@ export const PAGE_IDS = [
   'surat',
   'beritaAcara',
   'suratPenunjukan',
+  'billingDashboard',
   'billing',
   'master',
   'laporan',
