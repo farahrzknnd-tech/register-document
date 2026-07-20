@@ -24,6 +24,13 @@ export function formatRupiah(value: number): string {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
+
+export function sanitizeContractValueInput(value: string): string {
+  const digitsOnly = value.replace(/\D/g, '');
+  if (!digitsOnly) return '';
+  return digitsOnly.replace(/^0+(?=\d)/, '');
+}
+
 export function normalizeNullable(value: string | null | undefined): string | null {
   const normalized = value?.trim() ?? '';
   return normalized ? normalized : null;

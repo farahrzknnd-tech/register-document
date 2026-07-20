@@ -9,7 +9,7 @@ import type {
   SpkBillingInput,
   SpkBillingListItem,
 } from '../types';
-import { formatRupiah, validateSpkBillingInput } from '../utils/monitoring';
+import { formatRupiah, sanitizeContractValueInput, validateSpkBillingInput } from '../utils/monitoring';
 
 interface BillingFormProps {
   open: boolean;
@@ -88,10 +88,13 @@ export function BillingForm({
 }: BillingFormProps) {
   const [form, setForm] = useState<SpkBillingInput>(emptyInput);
   const [errors, setErrors] = useState<ReturnType<typeof validateSpkBillingInput>>({});
+  const [contractValueInput, setContractValueInput] = useState('');
 
   useEffect(() => {
     if (!open) return;
-    setForm(toInput(editing, statuses));
+    const nextForm = toInput(editing, statuses);
+    setForm(nextForm);
+    setContractValueInput(editing ? String(nextForm.contract_value) : '');
     setErrors({});
   }, [editing, open, statuses]);
 
@@ -121,6 +124,9 @@ export function BillingForm({
 
   const handleSubmit = async () => {
     const validation = validateSpkBillingInput(form);
+    if (!contractValueInput) {
+      validation.contract_value = 'Nilai kontrak wajib diisi.';
+    }
     setErrors(validation);
     if (Object.keys(validation).length > 0) return;
     await onSubmit(form);
@@ -251,15 +257,24 @@ export function BillingForm({
             <div>
               <label className="label">Nilai Kontrak *</label>
               <input
-                type="number"
-                min="0"
-                step="1"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
                 className="input"
-                value={form.contract_value}
-                onChange={(event) => set('contract_value', Number(event.target.value))}
+                value={contractValueInput}
+                onChange={(event) => {
+                  const sanitized = sanitizeContractValueInput(event.target.value);
+                  setContractValueInput(sanitized);
+                  set('contract_value', sanitized ? Number(sanitized) : 0);
+                }}
+                placeholder="Contoh: 150000000"
                 disabled={Boolean(editing?.termin_template_id)}
               />
-              <p className="mt-1 text-xs text-gray-500">{formatRupiah(form.contract_value)}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {contractValueInput
+                  ? formatRupiah(form.contract_value)
+                  : 'Masukkan nilai kontrak dalam Rupiah.'}
+              </p>
               {editing?.termin_template_id && <p className="mt-1 text-xs text-gray-500">Nilai kontrak dikunci karena termin sudah diinisialisasi.</p>}
               {errors.contract_value && <p className="mt-1 text-xs text-red-600">{errors.contract_value}</p>}
             </div>

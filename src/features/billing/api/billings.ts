@@ -212,69 +212,85 @@ export async function fetchSpkBillingDetail(
 type CreateSpkBillingArgs = Database['public']['Functions']['create_spk_billing']['Args'];
 type UpdateSpkBillingArgs = Database['public']['Functions']['update_spk_billing']['Args'];
 
-function assignOptional<T extends object, K extends keyof T>(
-  target: T,
-  key: K,
-  value: T[K] | null | undefined,
-): void {
-  if (value !== null && value !== undefined && value !== '') {
-    target[key] = value;
-  }
-}
+type CreateSpkBillingRuntimeArgs = {
+  p_surat_penunjukan_id: string | null;
+  p_project_id: string | null;
+  p_cluster_id: string | null;
+  p_contractor_id: string | null;
+  p_termin_template_id: string | null;
+  p_billing_status_id: string;
+  p_spk_number: string;
+  p_spk_date: string | null;
+  p_contractor_name_snapshot: string;
+  p_work_name: string;
+  p_work_location: string | null;
+  p_work_start_date: string | null;
+  p_work_finish_date: string | null;
+  p_kickoff_date: string | null;
+  p_stage_weight: string | null;
+  p_contract_value: number;
+  p_document_drive_url: string | null;
+  p_notes: string | null;
+};
 
-function buildCreateArgs(input: SpkBillingInput): CreateSpkBillingArgs {
-  const args: CreateSpkBillingArgs = {
+type UpdateSpkBillingRuntimeArgs = Omit<
+  CreateSpkBillingRuntimeArgs,
+  'p_surat_penunjukan_id' | 'p_termin_template_id'
+> & {
+  p_billing_id: string;
+};
+
+function buildCreateArgs(input: SpkBillingInput): CreateSpkBillingRuntimeArgs {
+  return {
+    p_surat_penunjukan_id: input.surat_penunjukan_id,
+    p_project_id: input.project_id,
+    p_cluster_id: input.cluster_id,
+    p_contractor_id: input.contractor_id,
+    p_termin_template_id: input.termin_template_id,
     p_billing_status_id: input.billing_status_id,
     p_spk_number: input.spk_number.trim(),
+    p_spk_date: input.spk_date,
     p_contractor_name_snapshot: input.contractor_name_snapshot.trim(),
     p_work_name: input.work_name.trim(),
+    p_work_location: normalizeNullable(input.work_location),
+    p_work_start_date: input.work_start_date,
+    p_work_finish_date: input.work_finish_date,
+    p_kickoff_date: input.kickoff_date,
+    p_stage_weight: normalizeNullable(input.stage_weight),
     p_contract_value: input.contract_value,
+    p_document_drive_url: normalizeNullable(input.document_drive_url),
+    p_notes: normalizeNullable(input.notes),
   };
-
-  assignOptional(args, 'p_surat_penunjukan_id', input.surat_penunjukan_id);
-  assignOptional(args, 'p_project_id', input.project_id);
-  assignOptional(args, 'p_cluster_id', input.cluster_id);
-  assignOptional(args, 'p_contractor_id', input.contractor_id);
-  assignOptional(args, 'p_termin_template_id', input.termin_template_id);
-  assignOptional(args, 'p_spk_date', input.spk_date);
-  assignOptional(args, 'p_work_location', normalizeNullable(input.work_location));
-  assignOptional(args, 'p_work_start_date', input.work_start_date);
-  assignOptional(args, 'p_work_finish_date', input.work_finish_date);
-  assignOptional(args, 'p_kickoff_date', input.kickoff_date);
-  assignOptional(args, 'p_stage_weight', normalizeNullable(input.stage_weight));
-  assignOptional(args, 'p_document_drive_url', normalizeNullable(input.document_drive_url));
-  assignOptional(args, 'p_notes', normalizeNullable(input.notes));
-
-  return args;
 }
 
-function buildUpdateArgs(id: string, input: SpkBillingInput): UpdateSpkBillingArgs {
-  const args: UpdateSpkBillingArgs = {
+function buildUpdateArgs(id: string, input: SpkBillingInput): UpdateSpkBillingRuntimeArgs {
+  return {
     p_billing_id: id,
+    p_project_id: input.project_id,
+    p_cluster_id: input.cluster_id,
+    p_contractor_id: input.contractor_id,
     p_billing_status_id: input.billing_status_id,
     p_spk_number: input.spk_number.trim(),
+    p_spk_date: input.spk_date,
     p_contractor_name_snapshot: input.contractor_name_snapshot.trim(),
     p_work_name: input.work_name.trim(),
+    p_work_location: normalizeNullable(input.work_location),
+    p_work_start_date: input.work_start_date,
+    p_work_finish_date: input.work_finish_date,
+    p_kickoff_date: input.kickoff_date,
+    p_stage_weight: normalizeNullable(input.stage_weight),
     p_contract_value: input.contract_value,
+    p_document_drive_url: normalizeNullable(input.document_drive_url),
+    p_notes: normalizeNullable(input.notes),
   };
-
-  assignOptional(args, 'p_project_id', input.project_id);
-  assignOptional(args, 'p_cluster_id', input.cluster_id);
-  assignOptional(args, 'p_contractor_id', input.contractor_id);
-  assignOptional(args, 'p_spk_date', input.spk_date);
-  assignOptional(args, 'p_work_location', normalizeNullable(input.work_location));
-  assignOptional(args, 'p_work_start_date', input.work_start_date);
-  assignOptional(args, 'p_work_finish_date', input.work_finish_date);
-  assignOptional(args, 'p_kickoff_date', input.kickoff_date);
-  assignOptional(args, 'p_stage_weight', normalizeNullable(input.stage_weight));
-  assignOptional(args, 'p_document_drive_url', normalizeNullable(input.document_drive_url));
-  assignOptional(args, 'p_notes', normalizeNullable(input.notes));
-
-  return args;
 }
 
 export async function createSpkBilling(input: SpkBillingInput): Promise<SpkBillingRow> {
-  const { data, error } = await supabase.rpc('create_spk_billing', buildCreateArgs(input));
+  // Supabase's generated function types cannot express nullable PostgreSQL arguments.
+  // Send the complete named argument set so PostgREST matches both the original and
+  // remediated RPC signatures, while preserving SQL NULL values at runtime.
+  const args = buildCreateArgs(input) as unknown as CreateSpkBillingArgs;
+  const { data, error } = await supabase.rpc('create_spk_billing', args);
   if (error) throw error;
   return data;
 }
@@ -283,7 +299,8 @@ export async function updateSpkBilling(
   id: string,
   input: SpkBillingInput,
 ): Promise<SpkBillingRow> {
-  const { data, error } = await supabase.rpc('update_spk_billing', buildUpdateArgs(id, input));
+  const args = buildUpdateArgs(id, input) as unknown as UpdateSpkBillingArgs;
+  const { data, error } = await supabase.rpc('update_spk_billing', args);
   if (error) throw error;
   return data;
 }

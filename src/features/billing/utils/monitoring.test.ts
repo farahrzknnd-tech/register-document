@@ -4,6 +4,7 @@ import {
   calculateBillingTotals,
   filterSpkBillings,
   formatRupiah,
+  sanitizeContractValueInput,
   validateSpkBillingInput,
 } from './monitoring';
 
@@ -107,6 +108,13 @@ describe('billing monitoring utilities', () => {
     expect(filterSpkBillings(rows, { ...filters, projectId: 'project-1' })).toHaveLength(1);
     expect(filterSpkBillings(rows, { ...filters, clusterId: 'cluster-1' })).toHaveLength(1);
     expect(filterSpkBillings(rows, { ...filters, search: 'project b' })[0].id).toBe('billing-2');
+  });
+
+
+  it('sanitizes contract values without a leading zero or number spinner semantics', () => {
+    expect(sanitizeContractValueInput('0123000')).toBe('123000');
+    expect(sanitizeContractValueInput('Rp 1.250.000')).toBe('1250000');
+    expect(sanitizeContractValueInput('')).toBe('');
   });
 
   it('calculates filtered totals and formats Rupiah', () => {

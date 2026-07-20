@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Layout, type PageId } from './components/Layout';
+import { getInitialPage, pageToHash } from './lib/pageNavigation';
 import { ToastProvider } from './components/Toast';
 import { FullPageLoading } from './components/Loading';
 import { Dashboard } from './pages/Dashboard';
@@ -25,7 +26,7 @@ type PendingDetail =
   | null;
 
 function App() {
-  const [page, setPage] = useState<PageId>('dashboard');
+  const [page, setPage] = useState<PageId>(() => getInitialPage());
   const [loading, setLoading] = useState(true);
   const [gambar, setGambar] = useState<Gambar[]>([]);
   const [surat, setSurat] = useState<Surat[]>([]);
@@ -35,6 +36,36 @@ function App() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [pendingDetail, setPendingDetail] = useState<PendingDetail>(null);
   const { user, role, loading: authLoading, error: authError, signOut } = useAuth();
+
+  const navigateToPage = useCallback((targetPage: PageId, replace = false) => {
+    setPage(targetPage);
+    if (typeof window === 'undefined') return;
+
+    const targetHash = pageToHash(targetPage);
+    if (window.location.hash === targetHash) return;
+
+    if (replace) {
+      window.history.replaceState(null, '', targetHash);
+    } else {
+      window.history.pushState(null, '', targetHash);
+    }
+  }, []);
+
+  useEffect(() => {
+    const syncPageFromUrl = () => setPage(getInitialPage());
+
+    window.addEventListener('popstate', syncPageFromUrl);
+    window.addEventListener('hashchange', syncPageFromUrl);
+
+    if (!window.location.hash) {
+      navigateToPage('dashboard', true);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', syncPageFromUrl);
+      window.removeEventListener('hashchange', syncPageFromUrl);
+    };
+  }, [navigateToPage]);
 
   const loadAll = useCallback(async () => {
     const [g, s, ba, sp, p, c] = await Promise.all([
@@ -57,24 +88,24 @@ function App() {
   const handleOpenDoc = useCallback((type: DocType, id: string) => {
     if (type === 'gambar') {
       const doc = gambar.find((g) => g.id === id);
-      if (doc) { setPendingDetail({ type: 'gambar', doc }); setPage('gambar'); }
+      if (doc) { setPendingDetail({ type: 'gambar', doc }); navigateToPage('gambar'); }
     } else if (type === 'surat') {
       const doc = surat.find((s) => s.id === id);
-      if (doc) { setPendingDetail({ type: 'surat', doc }); setPage('surat'); }
+      if (doc) { setPendingDetail({ type: 'surat', doc }); navigateToPage('surat'); }
     } else if (type === 'berita_acara') {
       const doc = beritaAcara.find((b) => b.id === id);
-      if (doc) { setPendingDetail({ type: 'berita_acara', doc }); setPage('beritaAcara'); }
+      if (doc) { setPendingDetail({ type: 'berita_acara', doc }); navigateToPage('beritaAcara'); }
     } else {
       const doc = suratPenunjukan.find((sp) => sp.id === id);
-      if (doc) { setPendingDetail({ type: 'surat_penunjukan', doc }); setPage('suratPenunjukan'); }
+      if (doc) { setPendingDetail({ type: 'surat_penunjukan', doc }); navigateToPage('suratPenunjukan'); }
     }
-  }, [gambar, surat, beritaAcara, suratPenunjukan]);
+  }, [gambar, surat, beritaAcara, suratPenunjukan, navigateToPage]);
 
   const consumeDetail = useCallback(() => setPendingDetail(null), []);
 
   const openAddModal = (targetPage: PageId) => {
     if (role !== 'admin') return;
-    setPage(targetPage);
+    navigateToPage(targetPage);
     setPendingDetail(null);
   };
 
@@ -84,7 +115,7 @@ function App() {
 
   return (
     <ToastProvider>
-      <Layout current={page} onNavigate={setPage} role={role} email={user.email ?? null} onLogout={() => { void signOut(); }}>
+      <Layout current={page} onNavigate={navigateToPage} role={role} email={user.email ?? null} onLogout={() => { void signOut(); }}>
         {page === 'dashboard' && (
           <Dashboard
             gambar={gambar}

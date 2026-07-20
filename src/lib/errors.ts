@@ -24,6 +24,9 @@ export function mapAppError(error: unknown): string {
   if (/Unsupported document|Unsupported register/i.test(message)) return 'Jenis dokumen tidak didukung.';
   if (/Referenced document not found|P0002/i.test(message)) return 'Dokumen referensi tidak ditemukan.';
   if (/Cross-project/i.test(message)) return 'Referensi beda proyek ditolak.';
+  if (/PGRST202|Could not find the function public\.create_spk_billing|Could not find the function public\.update_spk_billing/i.test(message)) {
+    return 'Fungsi Monitoring Tagihan belum tersedia pada Supabase yang sedang digunakan. Terapkan migration Patch 3 ke Supabase Cloud, lalu muat ulang aplikasi.';
+  }
   if (/SPK billing not found/i.test(message)) return 'Monitoring tagihan tidak ditemukan.';
   if (/SPK number is required/i.test(message)) return 'Nomor SPK wajib diisi.';
   if (/Work name is required/i.test(message)) return 'Nama pekerjaan wajib diisi.';

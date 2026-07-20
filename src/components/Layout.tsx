@@ -15,10 +15,11 @@ import {
   Eye,
 } from 'lucide-react';
 import type { UserRole } from '../lib/types';
+import type { PageId } from '../lib/pageNavigation';
 import { ROLE_LABELS } from '../lib/types';
 import { Footer } from './Footer';
 
-export type PageId = 'dashboard' | 'gambar' | 'surat' | 'beritaAcara' | 'suratPenunjukan' | 'billing' | 'master' | 'laporan';
+export type { PageId } from '../lib/pageNavigation';
 
 interface LayoutProps {
   current: PageId;
