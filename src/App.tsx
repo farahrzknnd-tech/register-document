@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Layout, type PageId } from './components/Layout';
 import { getInitialPage, pageToHash } from './lib/pageNavigation';
 import { ToastProvider } from './components/Toast';
-import { FullPageLoading } from './components/Loading';
+import { FullPageLoading, Loading } from './components/Loading';
 import { Dashboard } from './pages/Dashboard';
 import { RegisterGambar } from './pages/RegisterGambar';
 import { RegisterSurat } from './pages/RegisterSurat';
 import { RegisterBeritaAcara } from './pages/RegisterBeritaAcara';
 import { RegisterSuratPenunjukan } from './pages/RegisterSuratPenunjukan';
 import { MasterData } from './pages/MasterData';
-import { Laporan } from './pages/Laporan';
 import {
   fetchGambar, fetchSurat, fetchBeritaAcara, fetchSuratPenunjukan, fetchProjects, fetchClusters,
 } from './lib/api';
@@ -18,6 +17,10 @@ import { useAuth } from './lib/auth';
 import { Login } from './pages/Login';
 import { BillingMonitoring } from './features/billing/pages/BillingMonitoring';
 import { BillingDashboard } from './features/billing/pages/BillingDashboard';
+
+
+const BillingReports = lazy(() => import('./features/billing/pages/BillingReports').then((module) => ({ default: module.BillingReports })));
+const Laporan = lazy(() => import('./pages/Laporan').then((module) => ({ default: module.Laporan })));
 
 type PendingDetail =
   | { type: 'gambar'; doc: Gambar }
@@ -226,6 +229,15 @@ function App() {
             onOpenMonitoring={() => navigateToPage('billing')}
           />
         )}
+        {page === 'billingReports' && (
+          <Suspense fallback={<Loading label="Memuat laporan tagihan..." />}>
+            <BillingReports
+              projects={projects}
+              clusters={clusters}
+              onOpenBilling={handleOpenBilling}
+            />
+          </Suspense>
+        )}
         {page === 'billing' && (
           <BillingMonitoring
             projects={projects}
@@ -246,12 +258,14 @@ function App() {
           />
         )}
         {page === 'laporan' && (
-          <Laporan
-            gambar={gambar}
-            surat={surat}
-            clusters={clusters}
-            loading={false}
-          />
+          <Suspense fallback={<Loading label="Memuat laporan dokumen..." />}>
+            <Laporan
+              gambar={gambar}
+              surat={surat}
+              clusters={clusters}
+              loading={false}
+            />
+          </Suspense>
         )}
       </Layout>
     </ToastProvider>

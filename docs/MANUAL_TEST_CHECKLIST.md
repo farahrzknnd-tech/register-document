@@ -125,3 +125,21 @@
 - Klik item `Perlu Perhatian` dan pastikan detail Monitoring Tagihan terbuka.
 - Klik `Lihat Monitoring` dan pastikan pindah ke daftar Monitoring Tagihan.
 - Login sebagai viewer dan pastikan dashboard tetap dapat dibaca tanpa kontrol mutasi.
+
+## Billing Reports
+
+- [ ] Buka menu `Laporan Tagihan` dan pastikan URL menjadi `#/billingReports`.
+- [ ] Refresh browser dan pastikan tetap berada di Laporan Tagihan.
+- [ ] Pastikan KPI monitoring, kontrak, rencana, tagihan, pembayaran, sisa, dan outstanding sesuai data.
+- [ ] Uji pencarian nomor SPK, kontraktor, pekerjaan, Project, Cluster, Status, dan Tahapan.
+- [ ] Uji filter Project dan Cluster secara independen.
+- [ ] Uji filter Kontraktor, Status, Tahun, tanggal mulai, dan tanggal selesai.
+- [ ] Klik reset filter dan pastikan semua data kembali.
+- [ ] Buka tab `Detail Monitoring` dan klik nomor SPK; detail Monitoring Tagihan harus terbuka.
+- [ ] Buka tab `Detail Termin` dan pastikan hanya termin dari billing hasil filter yang tampil.
+- [ ] Export Excel dan pastikan tersedia sheet `Rekap`, `Monitoring`, dan `Termin`.
+- [ ] Export PDF dan pastikan ringkasan serta tabel dapat dibaca dalam orientasi landscape.
+- [ ] Print dan pastikan halaman khusus menampilkan ringkasan, detail monitoring, detail termin, dan footer.
+- [ ] Pastikan input teks yang diawali `=`, `+`, `-`, atau `@` tidak menjadi formula aktif di Excel.
+- [ ] Login sebagai viewer dan pastikan laporan, export, print, dan buka detail tetap tersedia tanpa kontrol mutasi.
+- [ ] Pastikan tidak ada migration database baru pada Patch 7.

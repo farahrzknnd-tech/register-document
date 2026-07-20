@@ -432,3 +432,18 @@ export async function deleteBillingTermin(id: string): Promise<void> {
   });
   if (error) throw error;
 }
+
+export async function fetchBillingTerminsForReport(): Promise<BillingTermin[]> {
+  const { data, error } = await supabase
+    .from('billing_termins')
+    .select('*')
+    .order('billing_id')
+    .order('sequence_no');
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    ...row,
+    status: row.status as BillingTermin['status'],
+  }));
+}

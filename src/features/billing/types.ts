@@ -277,3 +277,70 @@ export interface BillingFilterState {
   contractorId: string;
   sort: 'newest' | 'oldest' | 'spk_asc' | 'contract_desc';
 }
+
+export interface BillingReportFilters {
+  search: string;
+  projectId: string;
+  clusterId: string;
+  contractorId: string;
+  statusId: string;
+  year: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
+export interface BillingReportSummary {
+  totalBillings: number;
+  activeBillings: number;
+  completedBillings: number;
+  totalContractValue: number;
+  totalPlanned: number;
+  totalBilled: number;
+  totalPaid: number;
+  remainingUnbilled: number;
+  outstandingPayment: number;
+  billingPercentage: number;
+  paymentPercentage: number;
+}
+
+export interface BillingReportRow {
+  billingId: string;
+  spkNumber: string;
+  spkDate: string | null;
+  contractorName: string;
+  workName: string;
+  workLocation: string | null;
+  projectName: string;
+  clusterName: string;
+  statusName: string;
+  currentStageName: string;
+  workStartDate: string | null;
+  workFinishDate: string | null;
+  contractValue: number;
+  plannedAmount: number;
+  billedAmount: number;
+  paidAmount: number;
+  remainingUnbilled: number;
+  outstandingPayment: number;
+  billingPercentage: number;
+  paymentPercentage: number;
+  documentDriveUrl: string | null;
+}
+
+export interface BillingTerminReportRow {
+  billingId: string;
+  spkNumber: string;
+  contractorName: string;
+  projectName: string;
+  clusterName: string;
+  sequenceNo: number;
+  terminName: string;
+  percentage: number | null;
+  plannedAmount: number;
+  billedAmount: number;
+  paidAmount: number;
+  status: BillingTerminStatus;
+  billedDate: string | null;
+  paidDate: string | null;
+  notes: string | null;
+}

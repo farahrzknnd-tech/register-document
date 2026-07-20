@@ -11,6 +11,7 @@ import {
   FileSignature,
   FileCheck,
   ReceiptText,
+  FileSpreadsheet,
   Shield,
   Eye,
 } from 'lucide-react';
@@ -38,6 +39,7 @@ const allMenuItems: { id: PageId; label: string; icon: typeof LayoutDashboard; a
   { id: 'suratPenunjukan', label: 'Register Surat Penunjukan', icon: FileSignature },
   { id: 'billingDashboard', label: 'Dashboard Tagihan', icon: BarChart3 },
   { id: 'billing', label: 'Monitoring Tagihan', icon: ReceiptText },
+  { id: 'billingReports', label: 'Laporan Tagihan', icon: FileSpreadsheet },
   { id: 'master', label: 'Master Data', icon: Database, adminOnly: true },
   { id: 'laporan', label: 'Laporan', icon: BarChart3 },
 ];

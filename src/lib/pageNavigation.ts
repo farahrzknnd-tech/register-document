@@ -6,6 +6,7 @@ export const PAGE_IDS = [
   'suratPenunjukan',
   'billingDashboard',
   'billing',
+  'billingReports',
   'master',
   'laporan',
 ] as const;

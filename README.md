@@ -69,3 +69,7 @@ Lihat juga `docs/BILLING_MASTER_DATA.md`.
 ## Billing Dashboard
 
 Patch 6 menambahkan halaman Dashboard Tagihan dengan KPI kontrak, tagihan, pembayaran, breakdown Project/Cluster/Status/Tahapan, serta daftar monitoring yang perlu perhatian. Lihat `docs/BILLING_DASHBOARD.md`.
+
+## Billing Reports
+
+Patch 7 menambahkan halaman Laporan Tagihan dengan filter independen, rekap finansial, detail monitoring, detail termin, export Excel/PDF, dan print. Export library dimuat secara dinamis untuk mengurangi initial bundle. Lihat `docs/BILLING_REPORTS.md`.
