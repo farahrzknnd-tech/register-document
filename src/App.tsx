@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Layout, type PageId } from './components/Layout';
 import { getInitialPage, pageToHash } from './lib/pageNavigation';
 import { ToastProvider } from './components/Toast';
+import { AppErrorState } from './components/AppErrorState';
 import { FullPageLoading, Loading } from './components/Loading';
 import { Dashboard } from './pages/Dashboard';
 import { RegisterGambar } from './pages/RegisterGambar';
@@ -13,11 +14,12 @@ import {
   fetchGambar, fetchSurat, fetchBeritaAcara, fetchSuratPenunjukan, fetchProjects, fetchClusters,
 } from './lib/api';
 import type { Gambar, Surat, BeritaAcara, SuratPenunjukan, Project, Cluster, DocType } from './lib/types';
-import { useAuth } from './lib/auth';
+import { useAuth } from './lib/authContext';
+import { mapAppError } from './lib/errors';
 import { Login } from './pages/Login';
-import { BillingMonitoring } from './features/billing/pages/BillingMonitoring';
-import { BillingDashboard } from './features/billing/pages/BillingDashboard';
-
+const BillingMonitoring = lazy(() => import('./features/billing/pages/BillingMonitoring').then((module) => ({ default: module.BillingMonitoring })));
+const BillingDashboard = lazy(() => import('./features/billing/pages/BillingDashboard').then((module) => ({ default: module.BillingDashboard })));
+const BillingLegacyImport = lazy(() => import('./features/billing/pages/BillingLegacyImport').then((module) => ({ default: module.BillingLegacyImport })));
 
 const BillingReports = lazy(() => import('./features/billing/pages/BillingReports').then((module) => ({ default: module.BillingReports })));
 const Laporan = lazy(() => import('./pages/Laporan').then((module) => ({ default: module.Laporan })));
@@ -45,6 +47,8 @@ function App() {
   const [clusters, setClusters] = useState<Cluster[]>([]);
   const [pendingDetail, setPendingDetail] = useState<PendingDetail>(null);
   const [pendingBillingAction, setPendingBillingAction] = useState<PendingBillingAction>(null);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [retryingData, setRetryingData] = useState(false);
   const { user, role, loading: authLoading, error: authError, signOut } = useAuth();
 
   const navigateToPage = useCallback((targetPage: PageId, replace = false) => {
@@ -85,14 +89,39 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!user || !role) { setLoading(false); return; }
+    if (!user || !role) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setDataError(null);
     loadAll()
-      .catch((err) => console.error('Failed to load data:', err))
+      .catch((error) => setDataError(mapAppError(error)))
       .finally(() => setLoading(false));
   }, [loadAll, role, user]);
 
-  const handleRefresh = useCallback(() => {
-    loadAll().catch((err) => console.error('Failed to refresh:', err));
+  const handleRefresh = useCallback(async () => {
+    setDataError(null);
+    try {
+      await loadAll();
+    } catch (error) {
+      const message = mapAppError(error);
+      setDataError(message);
+      throw error;
+    }
+  }, [loadAll]);
+
+  const retryLoadAll = useCallback(async () => {
+    setRetryingData(true);
+    setDataError(null);
+    try {
+      await loadAll();
+    } catch (error) {
+      setDataError(mapAppError(error));
+    } finally {
+      setRetryingData(false);
+    }
   }, [loadAll]);
 
   const handleOpenDoc = useCallback((type: DocType, id: string) => {
@@ -137,7 +166,30 @@ function App() {
 
   if (authLoading || loading) return <FullPageLoading />;
   if (!user) return <ToastProvider><Login /></ToastProvider>;
-  if (authError || !role) return <ToastProvider><div className="p-6 text-red-700">{authError ?? 'Profil pengguna tidak ditemukan.'}</div></ToastProvider>;
+  if (authError || !role) {
+    return (
+      <ToastProvider>
+        <AppErrorState
+          title="Gagal memuat profil pengguna"
+          message={authError ?? 'Profil pengguna tidak ditemukan.'}
+          onLogout={() => { void signOut(); }}
+        />
+      </ToastProvider>
+    );
+  }
+  if (dataError) {
+    return (
+      <ToastProvider>
+        <AppErrorState
+          title="Gagal memuat data aplikasi"
+          message={dataError}
+          onRetry={() => { void retryLoadAll(); }}
+          onLogout={() => { void signOut(); }}
+          retrying={retryingData}
+        />
+      </ToastProvider>
+    );
+  }
 
   return (
     <ToastProvider>
@@ -222,12 +274,14 @@ function App() {
           />
         )}
         {page === 'billingDashboard' && (
+          <Suspense fallback={<Loading label="Memuat dashboard tagihan..." />}>
           <BillingDashboard
             projects={projects}
             clusters={clusters}
             onOpenBilling={handleOpenBilling}
             onOpenMonitoring={() => navigateToPage('billing')}
           />
+          </Suspense>
         )}
         {page === 'billingReports' && (
           <Suspense fallback={<Loading label="Memuat laporan tagihan..." />}>
@@ -239,6 +293,7 @@ function App() {
           </Suspense>
         )}
         {page === 'billing' && (
+          <Suspense fallback={<Loading label="Memuat monitoring tagihan..." />}>
           <BillingMonitoring
             projects={projects}
             clusters={clusters}
@@ -248,6 +303,12 @@ function App() {
             onConsumeInitialAction={consumeBillingAction}
             onOpenSuratPenunjukan={handleOpenSuratPenunjukan}
           />
+          </Suspense>
+        )}
+        {page === 'billingImport' && role === 'admin' && (
+          <Suspense fallback={<Loading label="Memuat import data legacy..." />}>
+            <BillingLegacyImport />
+          </Suspense>
         )}
         {page === 'master' && role === 'admin' && (
           <MasterData

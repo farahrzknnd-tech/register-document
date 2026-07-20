@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Loading } from '../../../components/Loading';
 import { EmptyState } from '../../../components/shared';
-import { useToast } from '../../../components/Toast';
+import { useToast } from '../../../components/toastContext';
 import { mapAppError } from '../../../lib/errors';
 import type { Cluster, Project } from '../../../lib/types';
 import { formatDate } from '../../../lib/utils';

@@ -6,6 +6,7 @@ describe('page navigation', () => {
     expect(parsePageHash('#/billingDashboard')).toBe('billingDashboard');
     expect(parsePageHash('#/billing')).toBe('billing');
     expect(parsePageHash('#/billingReports')).toBe('billingReports');
+    expect(parsePageHash('#/billingImport')).toBe('billingImport');
     expect(parsePageHash('#/suratPenunjukan')).toBe('suratPenunjukan');
   });
 
@@ -18,5 +19,6 @@ describe('page navigation', () => {
     expect(pageToHash('billingDashboard')).toBe('#/billingDashboard');
     expect(pageToHash('billing')).toBe('#/billing');
     expect(pageToHash('billingReports')).toBe('#/billingReports');
+    expect(pageToHash('billingImport')).toBe('#/billingImport');
   });
 });

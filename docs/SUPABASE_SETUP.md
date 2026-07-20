@@ -1,8 +1,8 @@
-# Setup Supabase Register Document
+# Setup Supabase Admin Management System
 
 ## 1. Project Supabase
 
-Buat atau pilih Supabase project khusus Register Document. Jangan gunakan project Disposal Management.
+Buat atau pilih Supabase project khusus Admin Management System. Jangan gunakan project Disposal Management.
 
 ## 2. Ambil URL dan key
 

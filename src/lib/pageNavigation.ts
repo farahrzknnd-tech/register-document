@@ -7,6 +7,7 @@ export const PAGE_IDS = [
   'billingDashboard',
   'billing',
   'billingReports',
+  'billingImport',
   'master',
   'laporan',
 ] as const;

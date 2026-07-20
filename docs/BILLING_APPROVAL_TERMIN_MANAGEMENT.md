@@ -1,6 +1,6 @@
 # Billing Approval Timeline dan Termin Pembayaran
 
-Patch 5 mengaktifkan pengelolaan timeline approval dan termin pembayaran pada detail Monitoring Tagihan. Register Document tetap menjadi host aplikasi dan seluruh mutasi mengikuti Auth, role, RLS, Toast, Modal, serta Supabase client yang sudah ada.
+Patch 5 mengaktifkan pengelolaan timeline approval dan termin pembayaran pada detail Monitoring Tagihan. Admin Management System tetap menjadi host aplikasi dan seluruh mutasi mengikuti Auth, role, RLS, Toast, Modal, serta Supabase client yang sudah ada.
 
 ## Fitur Timeline Approval
 

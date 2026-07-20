@@ -1,6 +1,6 @@
 # Billing Monitoring Core
 
-Patch 3 mengintegrasikan fitur inti Monitoring Tagihan ke dalam aplikasi Register Document. Register Document tetap menjadi host aplikasi, sehingga modul baru menggunakan layout, Auth, role, Project, Cluster, Toast, Modal, dan Supabase client yang sama.
+Patch 3 mengintegrasikan fitur inti Monitoring Tagihan ke dalam aplikasi Admin Management System. Admin Management System tetap menjadi host aplikasi, sehingga modul baru menggunakan layout, Auth, role, Project, Cluster, Toast, Modal, dan Supabase client yang sama.
 
 ## Ruang Lingkup
 
@@ -29,7 +29,7 @@ Ketiganya menggunakan `SECURITY DEFINER`, secure search path, dan validasi `curr
 
 ## Aturan Project dan Cluster
 
-Sesuai aturan Register Document:
+Sesuai aturan Admin Management System:
 
 - Project opsional.
 - Cluster opsional.

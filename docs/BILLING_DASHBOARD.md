@@ -1,6 +1,6 @@
 # Billing Dashboard
 
-Patch 6 menambahkan halaman **Dashboard Tagihan** sebagai ringkasan eksekutif modul Monitoring Tagihan. Halaman ini tetap menggunakan data, Auth, role, Project, Cluster, dan Supabase client milik Register Document.
+Patch 6 menambahkan halaman **Dashboard Tagihan** sebagai ringkasan eksekutif modul Monitoring Tagihan. Halaman ini tetap menggunakan data, Auth, role, Project, Cluster, dan Supabase client milik Admin Management System.
 
 ## Navigasi
 
@@ -20,7 +20,7 @@ Filter tersedia secara independen untuk:
 - Kontraktor;
 - Status Billing.
 
-Project dan Cluster tetap mengikuti keputusan domain Register Document: keduanya opsional serta independen. Memilih Project pada dashboard tidak mengubah atau membatasi pilihan Cluster.
+Project dan Cluster tetap mengikuti keputusan domain Admin Management System: keduanya opsional serta independen. Memilih Project pada dashboard tidak mengubah atau membatasi pilihan Cluster.
 
 ## KPI
 

@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Modul Monitoring Billing diintegrasikan ke dalam `register-document`. Aplikasi ini tetap menjadi pemilik autentikasi, role, layout, master Project, master Cluster, Supabase client, dan migration history.
+Modul Monitoring Billing diintegrasikan ke dalam `admin-management-system`. Aplikasi ini tetap menjadi pemilik autentikasi, role, layout, master Project, master Cluster, Supabase client, dan migration history.
 
 Patch ini hanya menambahkan fondasi database dan tipe domain. Halaman Monitoring Tagihan belum ditambahkan.
 
@@ -27,7 +27,7 @@ View `spk_billing_financial_summary` menjadi sumber nilai turunan `total_planned
 - `spk_billings.surat_penunjukan_id` memakai `surat_penunjukan.id` dan unik ketika terisi.
 - `spk_billings.project_id` memakai `projects.id`.
 - `spk_billings.cluster_id` memakai `clusters.id`.
-- Project dan Cluster pada billing opsional serta independen, mengikuti aturan dokumen Register Document.
+- Project dan Cluster pada billing opsional serta independen, mengikuti aturan dokumen Admin Management System.
 - Tidak ada `master_projects`, `project_cluster text`, atau tabel user baru.
 
 ## Sumber kebenaran finansial
@@ -63,7 +63,7 @@ Perubahan template setelahnya tidak mengubah termin yang sudah terbentuk.
 | Viewer aktif | Ya | Tidak |
 | Admin aktif | Ya | Ya |
 
-Seluruh policy memakai `current_user_active()` dan `current_user_admin()` dari Register Document. Migration lama Monitoring Billing yang memberikan CRUD kepada `anon` tidak digunakan.
+Seluruh policy memakai `current_user_active()` dan `current_user_admin()` dari Admin Management System. Migration lama Monitoring Billing yang memberikan CRUD kepada `anon` tidak digunakan.
 
 ## Seed
 

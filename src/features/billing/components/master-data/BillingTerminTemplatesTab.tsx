@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Pencil, Plus, Receipt, Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '../../../../components/ConfirmDialog';
 import { Loading } from '../../../../components/Loading';
 import { Modal } from '../../../../components/Modal';
-import { useToast } from '../../../../components/Toast';
+import { useToast } from '../../../../components/toastContext';
 import { mapAppError } from '../../../../lib/errors';
 import {
   deleteBillingTerminTemplate,

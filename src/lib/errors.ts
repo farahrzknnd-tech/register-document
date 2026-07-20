@@ -14,6 +14,7 @@ export function mapAppError(error: unknown): string {
   const message = extractErrorMessage(error);
   if (/JWT|auth|Authentication required/i.test(message)) return 'Login diperlukan.';
   if (/inactive|Account inactive/i.test(message)) return 'Akun tidak aktif.';
+  if (/Unsupported application role/i.test(message)) return 'Role pengguna tidak didukung.';
   if (/Admin permission|required|permission denied|42501/i.test(message)) return 'Akses admin diperlukan.';
   if (/system managed/i.test(message)) return 'Field sistem tidak boleh diubah manual.';
   if (/Register number is immutable/i.test(message)) return 'Nomor register tidak boleh diubah.';
@@ -24,6 +25,14 @@ export function mapAppError(error: unknown): string {
   if (/Unsupported document|Unsupported register/i.test(message)) return 'Jenis dokumen tidak didukung.';
   if (/Referenced document not found|P0002/i.test(message)) return 'Dokumen referensi tidak ditemukan.';
   if (/Cross-project/i.test(message)) return 'Referensi beda proyek ditolak.';
+  if (/PGRST202.*(import_legacy_billing_backup|list_billing_import_runs)|Could not find the function public\.(import_legacy_billing_backup|list_billing_import_runs)/i.test(message)) {
+    return 'Fungsi import data legacy belum tersedia. Terapkan migration Patch 8 ke Supabase yang digunakan, lalu muat ulang aplikasi.';
+  }
+  if (/Legacy billing payload must be a JSON object/i.test(message)) return 'Format file import harus berupa object JSON.';
+  if (/Legacy billing payload spkRecords must be an array/i.test(message)) return 'Format file import tidak valid: spkRecords wajib berupa array.';
+  if (/supports at most 5000 records/i.test(message)) return 'Satu file import hanya boleh berisi maksimal 5.000 SPK.';
+  if (/Legacy import preview returned no result/i.test(message)) return 'Validasi import tidak menghasilkan ringkasan.';
+  if (/Legacy import returned no result/i.test(message)) return 'Import tidak menghasilkan ringkasan.';
   if (/PGRST202.*(update_billing_stage_progress|sync_billing_stage_progress|save_billing_termin|delete_billing_termin)|Could not find the function public\.(update_billing_stage_progress|sync_billing_stage_progress|save_billing_termin|delete_billing_termin)/i.test(message)) {
     return 'Fungsi Approval dan Termin belum tersedia pada Supabase yang sedang digunakan. Terapkan migration Patch 5, lalu muat ulang aplikasi.';
   }

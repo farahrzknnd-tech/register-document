@@ -143,3 +143,25 @@
 - [ ] Pastikan input teks yang diawali `=`, `+`, `-`, atau `@` tidak menjadi formula aktif di Excel.
 - [ ] Login sebagai viewer dan pastikan laporan, export, print, dan buka detail tetap tersedia tanpa kontrol mutasi.
 - [ ] Pastikan tidak ada migration database baru pada Patch 7.
+
+## Patch 8 — Import Legacy, Hardening, dan Branding
+
+- [ ] Title browser, Login, sidebar desktop, dan header mobile menampilkan `Admin Management System`.
+- [ ] Metadata Bolt dan favicon Vite tidak lagi ada pada `index.html`.
+- [ ] Buka `Import Data Legacy` sebagai admin dan pastikan URL menjadi `#/billingImport`.
+- [ ] Refresh browser dan pastikan tetap berada di halaman import.
+- [ ] Viewer tidak melihat menu Import Data Legacy.
+- [ ] Unggah JSON invalid; aplikasi menolak dengan pesan jelas.
+- [ ] Unggah file tanpa `spkRecords`; aplikasi menolak.
+- [ ] Unggah backup valid lalu klik Validasi Import; belum ada data yang ditulis.
+- [ ] Preview menampilkan total, importable, duplicate, invalid, dan unresolved scope.
+- [ ] Import record baru dan pastikan Monitoring Tagihan bertambah.
+- [ ] Import file yang sama kedua kali dan pastikan SPK duplikat dilewati.
+- [ ] Project/Cluster tidak ditemukan menghasilkan warning dan billing tetap diimpor dengan nilai null.
+- [ ] Kontraktor/status/template yang belum ada dibuat saat import aktual.
+- [ ] Tahapan approval dan termin legacy tampil pada detail monitoring hasil import.
+- [ ] Total tagihan legacy dipertahankan, termasuk termin penyesuaian bila diperlukan.
+- [ ] Riwayat import tampil dan tidak dapat dimutasi langsung oleh browser role.
+- [ ] Simulasikan backend gagal saat initial load; aplikasi menampilkan error screen, Retry, dan Logout.
+- [ ] Jalankan ESLint dan pastikan tidak ada Fast Refresh warning dari Auth/Toast.
+- [ ] Pastikan file `supabase/.temp` tidak ikut Git.

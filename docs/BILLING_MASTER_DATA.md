@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Patch 2 menambahkan UI master data untuk modul Monitoring Billing dengan tetap memakai fondasi Register Document:
+Patch 2 menambahkan UI master data untuk modul Monitoring Billing dengan tetap memakai fondasi Admin Management System:
 
 - Supabase Auth yang sama;
 - role `admin` dan `viewer` yang sama;

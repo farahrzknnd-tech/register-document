@@ -4,7 +4,7 @@ import type { Gambar, Surat, Cluster } from '../lib/types';
 import { JENIS_GAMBAR_LIST, JENIS_SURAT_LIST } from '../lib/types';
 import { FilterBar, type FilterOption } from '../components/FilterBar';
 import { Loading } from '../components/Loading';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/toastContext';
 
 interface LaporanProps {
   gambar: Gambar[];

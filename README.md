@@ -1,4 +1,4 @@
-# Register Document
+# Admin Management System
 
 Aplikasi register dokumen proyek berbasis React, TypeScript, Vite, Tailwind CSS, Supabase Auth, Supabase PostgreSQL, jsPDF, dan XLSX.
 
@@ -43,12 +43,12 @@ npm run check
 ## Migration safety
 
 - Jangan jalankan migration ke project remote otomatis dari agen.
-- Review SQL dahulu, lalu jalankan manual ke dedicated Supabase project Register Document.
+- Review SQL dahulu, lalu jalankan manual ke dedicated Supabase project Admin Management System.
 - Migration baseline diasumsikan untuk database kosong dan sengaja tidak dibuat terlalu idempotent.
 
 ## Billing Monitoring Foundation
 
-Fondasi database Monitoring Billing ditambahkan melalui migration `20260719160000_add_billing_monitoring_foundation.sql`. Register Document tetap menjadi aplikasi induk dan menggunakan Auth, role, Project, Cluster, serta migration history yang sama.
+Fondasi database Monitoring Billing ditambahkan melalui migration `20260719160000_add_billing_monitoring_foundation.sql`. Admin Management System tetap menjadi aplikasi induk dan menggunakan Auth, role, Project, Cluster, serta migration history yang sama.
 
 Lihat `docs/BILLING_DATABASE_FOUNDATION.md`. Setelah migration lokal diterapkan, jalankan `npm run db:types` sebelum melanjutkan pengembangan UI billing.
 
@@ -73,3 +73,12 @@ Patch 6 menambahkan halaman Dashboard Tagihan dengan KPI kontrak, tagihan, pemba
 ## Billing Reports
 
 Patch 7 menambahkan halaman Laporan Tagihan dengan filter independen, rekap finansial, detail monitoring, detail termin, export Excel/PDF, dan print. Export library dimuat secara dinamis untuk mengurangi initial bundle. Lihat `docs/BILLING_REPORTS.md`.
+
+## Legacy Billing Import dan Final Hardening
+
+Patch 8 menambahkan halaman admin `Import Data Legacy` untuk memigrasikan backup JSON dari aplikasi Monitoring Billing lama secara aman dan aditif. Import memiliki dry-run, perlindungan duplikat, mapping master data, audit history, serta tidak menimpa data yang sudah ada.
+
+Branding aplikasi final adalah **Admin Management System**. Lihat:
+
+- `docs/LEGACY_BILLING_IMPORT.md`
+- `docs/FINAL_INTEGRATION_HARDENING.md`

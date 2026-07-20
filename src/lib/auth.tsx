@@ -1,32 +1,22 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type QueryBuilder = any;
-const authDb = supabase as never as { from: (table: string) => QueryBuilder };
-import type { UserRole } from './types';
-
-type Profile = { user_id: string; email: string | null; role: UserRole; active: boolean };
-type AuthContextValue = {
-  session: Session | null;
-  user: User | null;
-  profile: Profile | null;
-  role: UserRole | null;
-  isAdmin: boolean;
-  loading: boolean;
-  error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { mapAppError } from './errors';
+import { AuthContext, type AuthContextValue, type Profile } from './authContext';
 
 async function loadProfile(userId: string): Promise<Profile> {
-  const { data, error } = await authDb.from('app_users').select('user_id,email,role,active').eq('user_id', userId).single();
+  const { data, error } = await supabase
+    .from('app_users')
+    .select('user_id,email,role,active')
+    .eq('user_id', userId)
+    .single();
+
   if (error) throw error;
   if (!data.active) throw new Error('Account inactive');
-  return data;
+  if (data.role !== 'admin' && data.role !== 'viewer') {
+    throw new Error('Unsupported application role');
+  }
+  return { ...data, role: data.role };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -37,17 +27,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
+
     async function sync(nextSession: Session | null) {
       setSession(nextSession);
       setProfile(null);
       setError(null);
+
       if (!nextSession?.user) return;
-      try { if (alive) setProfile(await loadProfile(nextSession.user.id)); }
-      catch (err) { if (alive) setError(err instanceof Error ? err.message : String(err)); }
+
+      try {
+        const nextProfile = await loadProfile(nextSession.user.id);
+        if (alive) setProfile(nextProfile);
+      } catch (syncError) {
+        if (alive) setError(mapAppError(syncError));
+      }
     }
-    supabase.auth.getSession().then(({ data }) => sync(data.session).finally(() => alive && setLoading(false)));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => { void sync(nextSession); });
-    return () => { alive = false; sub.subscription.unsubscribe(); };
+
+    supabase.auth.getSession()
+      .then(({ data }) => sync(data.session))
+      .catch((sessionError) => {
+        if (alive) setError(mapAppError(sessionError));
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      void sync(nextSession);
+    });
+
+    return () => {
+      alive = false;
+      subscription.subscription.unsubscribe();
+    };
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
@@ -62,14 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
     },
-    signOut: async () => { await supabase.auth.signOut(); setSession(null); setProfile(null); },
+    signOut: async () => {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+      setSession(null);
+      setProfile(null);
+      setError(null);
+    },
   }), [error, loading, profile, session]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const value = useContext(AuthContext);
-  if (!value) throw new Error('useAuth must be used inside AuthProvider');
-  return value;
 }
