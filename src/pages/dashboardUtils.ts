@@ -52,3 +52,13 @@ export function getSuratPenunjukanAgendaTitle(
 ): string {
   return suratPenunjukan.jenis_pekerjaan.trim() || 'Surat Penunjukan';
 }
+
+export function getSuratPenunjukanAgendaSubtitle(
+  suratPenunjukan: SuratPenunjukan,
+): string {
+  const nomorSuratPenunjukan = suratPenunjukan.nomor_sp.trim();
+
+  return nomorSuratPenunjukan
+    ? `Kick Off Meeting - ${nomorSuratPenunjukan}`
+    : 'Kick Off Meeting';
+}

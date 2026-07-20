@@ -14,6 +14,7 @@ import { Loading } from '../components/Loading';
 import { formatDate, toDocSummary } from '../lib/utils';
 import { exportToCsv, printDocuments, type ExportRow } from '../lib/export';
 import {
+  getSuratPenunjukanAgendaSubtitle,
   getSuratPenunjukanAgendaTitle,
   getSuratPenunjukanDashboardTitle,
   matchesDashboardExplorerSelection,
@@ -218,7 +219,7 @@ export function Dashboard({
       if (sp.tanggal_kickoff) {
         items.push({
           date: sp.tanggal_kickoff,
-          title: sp.nomor_sp,
+          title: getSuratPenunjukanAgendaSubtitle(sp),
           type: 'surat_penunjukan',
           id: sp.id,
           kind: getSuratPenunjukanAgendaTitle(sp),
@@ -722,7 +723,7 @@ export function Dashboard({
                           className={`cursor-pointer transition-colors ${isPreview ? 'bg-brand-50/50' : 'hover:bg-gray-50/50'}`}
                           onClick={() => handleRowClick(d)}>
                           <td className="px-4 py-3"><span className="font-mono text-xs font-semibold text-brand-600">{d.summary.register_no || '-'}</span></td>
-                          <td className="px-4 py-3 max-w-[200px] truncate font-medium text-gray-900" title={d.summary.title}>{d.summary.title}</td>
+                          <td className="min-w-[12rem] max-w-[18rem] whitespace-normal break-words px-4 py-3 align-top font-medium leading-snug text-gray-900 sm:min-w-[14rem]" title={d.summary.title}>{d.summary.title}</td>
                           <td className="px-4 py-3 text-gray-600">{d.clusterName}</td>
                           <td className="px-4 py-3">
                             <Badge color={docTypeColors[d.summary.type]}>
@@ -801,7 +802,7 @@ export function Dashboard({
                     </div>
                     <div>
                       <p className="label">Judul / Perihal</p>
-                      <p className="text-sm font-medium text-gray-900">{d.summary.title}</p>
+                      <p className="break-words text-sm font-medium text-gray-900">{d.summary.title}</p>
                     </div>
                     <div>
                       <p className="label">Cluster</p>
@@ -870,8 +871,8 @@ export function Dashboard({
                       <span className="text-sm font-bold leading-none">{new Date(a.date).getDate()}</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-gray-900">{a.kind}</p>
-                      <p className="truncate text-xs text-gray-500">{a.title}</p>
+                      <p className="whitespace-normal break-words text-sm font-medium leading-snug text-gray-900">{a.kind}</p>
+                      <p className="mt-0.5 whitespace-normal break-words text-xs leading-snug text-gray-500">{a.title}</p>
                     </div>
                     <ArrowRight className="h-4 w-4 flex-shrink-0 text-gray-400" />
                   </button>
@@ -906,10 +907,10 @@ export function Dashboard({
                         <Icon className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-gray-900">
+                        <p className="whitespace-normal break-words text-sm font-medium leading-snug text-gray-900">
                           <span className="font-mono text-brand-600">{d.summary.register_no || '-'}</span> ditambahkan
                         </p>
-                        <p className="truncate text-xs text-gray-500">{d.summary.title}</p>
+                        <p className="mt-0.5 whitespace-normal break-words text-xs leading-snug text-gray-500">{d.summary.title}</p>
                       </div>
                       <span className="flex-shrink-0 text-xs text-gray-400 whitespace-nowrap">
                         {new Date(d.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}

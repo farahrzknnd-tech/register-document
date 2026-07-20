@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SuratPenunjukan } from "../lib/types";
 import {
+  getSuratPenunjukanAgendaSubtitle,
   getSuratPenunjukanAgendaTitle,
   getSuratPenunjukanDashboardTitle,
   matchesDashboardExplorerSelection,
@@ -64,6 +65,12 @@ describe("dashboard document explorer behavior", () => {
   it("uses jenis pekerjaan as the agenda heading instead of Kick Off Meeting", () => {
     expect(getSuratPenunjukanAgendaTitle(suratPenunjukan)).toBe(
       "Pengadaan dan Pemasangan Air Mancur Danau",
+    );
+  });
+
+  it("formats the kickoff agenda subtitle with the Surat Penunjukan number", () => {
+    expect(getSuratPenunjukanAgendaSubtitle(suratPenunjukan)).toBe(
+      "Kick Off Meeting - 132/TOP/DA-DTSA/VII/2026",
     );
   });
 });
